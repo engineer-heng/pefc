@@ -1,4 +1,4 @@
-# Python Engineering Foundation Class (PEFc) Library
+# Python Engineering Foundation Class (pefc) Library
 
 Library to perform engineering data analysis using python.
 Currently the completed module is xltab which contain classes that
