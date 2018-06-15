@@ -115,10 +115,10 @@ class TestOXLDataLink(unittest.TestCase):
         print('str printout  = {}'.format(str(self.oxldl)))
         print('repr printout = {}'.format(repr(self.oxldl)))
         # inheritance tests
-        print('XL File Name = {}'.format(self.oxldl.file_name()))
-        print('XL WS Name   = {}'.format(self.oxldl.sheet_name()))
-        print('XL WB Object = {}'.format(self.oxldl.workbook()))
-        print('XL WS Object = {}'.format(self.oxldl.worksheet()))
+        print('XL File Name = {}'.format(self.oxldl.file_name))
+        print('XL WS Name   = {}'.format(self.oxldl.sheet_name))
+        print('XL WB Object = {}'.format(self.oxldl.workbook))
+        print('XL WS Object = {}'.format(self.oxldl.worksheet))
         print('Coordinates of HZ85 = {}'.format(
             self.oxldl.cref_coord('HZ85')))  # 1-based
 

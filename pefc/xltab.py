@@ -79,21 +79,25 @@ class PyXLDatalink(ABC):
     def __repr__(self):
         pass
 
+    @property
     def workbook(self):
         """ Returns the workbook object
         """
         return self._wbook
 
+    @property
     def worksheet(self):
         """ Returns the worksheet object
         """
         return self._wsheet
 
+    @property
     def file_name(self):
         """ Returns the MS Excel file name
         """
         return self._file_name
 
+    @property
     def sheet_name(self):
         """ Returns the worksheet name
         """
