@@ -54,7 +54,7 @@ class TestXLDataLink(unittest.TestCase):
 
     def test_sheet_name(self):
         print('\nSheet Name')
-        res = self.xldl.sheet_name()
+        res = self.xldl.sheet_name
         print(res)
         self.assertEqual(res, 'Sheet2')
 
@@ -178,19 +178,19 @@ class TestXLDataLink(unittest.TestCase):
         print('str printout  = {}'.format(str(self.xldl)))
         print('repr printout = {}'.format(repr(self.xldl)))
         # inheritance tests
-        print('XL File Name = {}'.format(self.xldl.file_name()))
-        print('XL WS Name   = {}'.format(self.xldl.sheet_name()))
-        print('XL WB Object = {}'.format(self.xldl.workbook()))
-        print('XL WS Object = {}'.format(self.xldl.worksheet()))
+        print('XL File Name = {}'.format(self.xldl.file_name))
+        print('XL WS Name   = {}'.format(self.xldl.sheet_name))
+        print('XL WB Object = {}'.format(self.xldl.workbook))
+        print('XL WS Object = {}'.format(self.xldl.worksheet))
 
         print('Error cell value')
         cerr = self.xldl.raw_range_value('E34')
         print('Error Value = {}'.format(cerr))
 
         print('\nTest for using workbook and sheet outside the class')
-        curr_sht_name = self.xldl.sheet_name()
+        curr_sht_name = self.xldl.sheet_name
         self.xldl.sheet = 'Sheet5'
-        sht = self.xldl.worksheet()
+        sht = self.xldl.worksheet
         col_ls = sht.col_values(1)
         print(col_ls)
         self.xldl.sheet = curr_sht_name  # reset to previous sheet

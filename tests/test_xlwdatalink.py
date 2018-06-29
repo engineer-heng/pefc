@@ -109,11 +109,11 @@ class TestXWLDataLink(unittest.TestCase):
         print('str printout  = {}'.format(str(self.xlwdl)))
         print('repr printout = {}'.format(repr(self.xlwdl)))
         # inheritance tests
-        print('XL File Name = {}'.format(self.xlwdl.file_name()))
-        print('XL WS Name   = {}'.format(self.xlwdl.sheet_name()))
+        print('XL File Name = {}'.format(self.xlwdl.file_name))
+        print('XL WS Name   = {}'.format(self.xlwdl.sheet_name))
         print('XL App Object= {}'.format(self.xlwdl.app()))
-        print('XL WB Object = {}'.format(self.xlwdl.workbook()))
-        print('XL WS Object = {}'.format(self.xlwdl.worksheet()))
+        print('XL WB Object = {}'.format(self.xlwdl.workbook))
+        print('XL WS Object = {}'.format(self.xlwdl.worksheet))
         coord = self.xlwdl.cref_coord('HZ85')
         print('Coordinates of HZ85 = {}'.format(coord))  # 1-based
 
