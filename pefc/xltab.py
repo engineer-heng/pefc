@@ -348,7 +348,11 @@ class OXLDataLink(PyXLDatalink):
             if dates is datetime.datetime:
                 return value
             elif dates is datetime.date:
-                return value.date()
+                # value can be a datetime.datetime or datetime.date
+                if isinstance(value, datetime.datetime):
+                    return value.date()
+                else:
+                    return value
         elif cell.data_type == cell.TYPE_ERROR:
             return math.nan
         else:
