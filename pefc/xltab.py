@@ -9,8 +9,8 @@
 xltab Library - Tabulate data from MS Excel forms. MS Excel workbooks
 typically contains data arranged in form layout used for data entry.
 Such forms are useful for people but unsuitable for data analysis.
-Use the classes here to tabulate data from multiple forms by using the
-class method tab_form.
+Use the classes here to tabulate data from multiple forms in MS Excel
+format by using the class method tab_form.
 Class methods here return data in either a single value, a list or
 dict that can be easily converted into a database table or
 pandas DataFrame to be processed by Apps for data mining and
@@ -1023,7 +1023,7 @@ def convert_xls(src: str, dest: str, xl_format=51, regex_str=".*\\.xls"):
     Helps to fix the issue with bad excel file format issue e.g.
     xlrd.biffh.XLRDError: Unsupported format, or
     corrupt file: Expected BOF record;
-    found b'\xff\xfe<\x00!\x00D\x00'
+    found b'\\xff\\xfe<\\x00!\\x00D\\x00'
     or 'xlrd.biffh.XLRDError: Workbook is encrypted'
     for MS Excel 95 protected file issue
     MS Excel 2016 cannot handle legacy Excel 4 files, it is blocked by

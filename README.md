@@ -1,12 +1,19 @@
 # Python Engineering Foundation Class (pefc) Library
 
 Library to perform engineering data analysis using python.
-Currently the completed module is xltab which contain classes that
-tabulate data from MS Excel forms. MS Excel workbooks
-typically contains data arranged in form layout used for data entry.
-Such forms are useful for people but unsuitable for data analysis.
-Use the classes here to tabulate data from multiple forms.
-Perform analysis on the tabulated data.
+Currently the completed module is xltab which contain classes that tabulate data from MS Excel forms.
+It is a common practice to use MS Excel as a 'form' for operators to enter data in a typical shopfloor. Extracting data for analysis from many such forms is a pain which xltab tries to solve. A directory may contain from hundreds to thousands of such MS Excel files typically saved by batch numbers.
+With xltab you can collect data from multiple MS Excel files and save it into a tabular format that pandas.read_excel() function can read. You can also collect the data and convert it to pandas.DataFrame().
+You can then use the powerful Pandas package to perform your data analysis.
+
+xltab makes use of three common Excel related packages to read/write data from your Excel file.
+They are xlrd, openpyxl, xlwings and theie respective xltab classes are XLDataLink, OXLDataLink and XLWDataLink.
+Why these three packages? Each have their pros amd cons. xlrd can read both xls and xlsx files but cannot write.
+XLDataLink which uses xlrd is best to use if you only want to read data. XLDataLink makes use of cell references e.g. 'A10' instead of row number and column number so it is more convenient to use than xlrd.
+openpyxl only works with the newer xlsx MS Excel files but can read and write.
+xlwings needs MS Excel installed into your computer to work.
+If you find that OXLDataLink is not suitable for your files then you can easily switch to XLDataLink or XLWDataLink. XLWDataLink is the slowest because it uses MS Excel to read and write your Excel files but it has one advantage the others don't have.  MS Excel is excellent in handling files that have format issues seamlessly.
+XLWDatalink solves some workbook errors such as:'xlrd.biffh.XLRDError: Workbook is encrypted' caused by MS Excel 95 protected file issue. It can fix formula errors on the fly using xlwings.
 
 ## Getting Started
 
