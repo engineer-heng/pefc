@@ -3,7 +3,7 @@ import math
 import os
 import unittest
 
-from xltab import XLDataLink
+from pefc.xltab import XLDataLink
 
 
 class TestXLDataLink(unittest.TestCase):

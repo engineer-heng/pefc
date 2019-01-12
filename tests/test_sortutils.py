@@ -1,5 +1,5 @@
 import unittest
-from sortutils import AlphaNum, sort_by_month
+from pefc.sortutils import AlphaNum, sort_by_month
 
 
 class TestSortUtils(unittest.TestCase):

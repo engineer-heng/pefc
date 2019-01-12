@@ -6,7 +6,7 @@ import os
 
 import xlwings as xw
 
-from xltab import XLWDataLink, convert_xls
+from pefc.xltab import XLWDataLink, convert_xls
 
 
 class TestXlTabFuncs(unittest.TestCase):

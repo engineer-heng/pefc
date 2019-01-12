@@ -1,5 +1,5 @@
 import unittest
-from xltab import XLWDataLink, XLDataLink
+from pefc.xltab import XLWDataLink, XLDataLink
 import datetime
 import xlwings
 import math
