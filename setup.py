@@ -132,7 +132,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['openpyxl', 'xlrd', 'xlwings', 'win32com'],  # Optional
+    install_requires=['openpyxl', 'xlrd', 'xlwings', 'pywin32'],  # Optional
     python_requires='>=3.6',  # Optional
 
     # List additional groups of dependencies here (e.g. development
