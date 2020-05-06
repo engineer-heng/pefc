@@ -1,4 +1,4 @@
-""" Practical Test of MVC concepts using a panel for Data Entry.
+""" A demostration of MVC concepts using a panel for Data Entry.
     This is a simple implementation of the MVC inspired by
     Stefano Borini.
     It avoids the use of wxpython MVC's recommended PyPubSub package.
@@ -331,7 +331,7 @@ class MainWindow(wx.Frame):
     def on_about(self, event):
         # A message dialog box with an OK button.
         # wx.OK is a standard ID in wxWidgets.
-        dlg = wx.MessageDialog(self, "Test MVC Concepts",
+        dlg = wx.MessageDialog(self, "Demo to test MVC Concepts",
                                "About MVC Tests", wx.OK)
         dlg.ShowModal()  # Show it
         dlg.Destroy()  # finally destroy it when finished.
@@ -354,7 +354,7 @@ if __name__ == '__main__':
                   }
     # Init the Model which in a real app has databases and biz logic in it.
     model = DemoModel(model_dict)
-    frame = MainWindow(None, model, "Practical MVC Tests")
+    frame = MainWindow(None, model, "Practical MVC Demo")
     frame.Show()
 
     app.MainLoop()
