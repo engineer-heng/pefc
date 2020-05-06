@@ -13,8 +13,6 @@
 
 # TODO: DbaseModel that store data in a database using SQLAlchemy
 
-# Testing is done by ./tests/test_mvc_practical.py
-
 
 class DictModel:
     """ This is the 'Model'. The Model's responsibilites is to notify
