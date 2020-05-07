@@ -18,6 +18,7 @@ from math import sqrt, atan2, isclose, pi, degrees, radians, fabs
 @dataclass
 class CadPt():
     """ CadPt provide the x, y coordinates data for the Entity's sub-classes.
+        CadPt()
     """
     x: float = 0.0
     y: float = 0.0
@@ -154,13 +155,13 @@ class Point(Entity):
     """ Point Entity for CAD geometry derived from Entity class.
     """
 
-    def __init__(self, pos=CadPt(), *args, **kwargs):
+    def __init__(self, pos=None, *args, **kwargs):
         """ Constructor for the Point Entity
 
-            pos: CadPt, point position
+            pos: CadPt, point position, default = CadPt()
         """
         super().__init__(*args, **kwargs)
-        self.pt_position = pos
+        self.pt_position = pos if pos is not None else CadPt()
 
     def __str__(self):
         return (f'{self.__class__.__name__}: '
@@ -190,16 +191,16 @@ class Line(Entity):
     """ Line Entity for CAD geometry derived from Entity class.
     """
 
-    def __init__(self, spt=CadPt(), ept=CadPt(), *args, **kwargs):
+    def __init__(self, spt=None, ept=None, *args, **kwargs):
         """ Constructor for the Line Entity
 
-            spt: CadPt, start point
+            spt: CadPt, start point, default = CadPt()
 
-            ept: CadPt, end point
+            ept: CadPt, end point, default = CadPt()
         """
         super().__init__(*args, **kwargs)
-        self.start_point = spt
-        self.end_point = ept
+        self.start_point = spt if spt is not None else CadPt()
+        self.end_point = ept if ept is not None else CadPt()
 
     def __str__(self):
         return (f'{self.__class__.__name__}: '
@@ -252,15 +253,15 @@ class Circle(Entity):
     """ Circle Entity for CAD geometry derived from Entity class.
     """
 
-    def __init__(self, cen_pt=CadPt(), rad=1.0, *args, **kwargs):
+    def __init__(self, cen_pt=None, rad=1.0, *args, **kwargs):
         """ Constructor for the Circle Entity
 
-            cen_pt: CadPt, center point
+            cen_pt: CadPt, center point, default CadPt()
 
             rad: float, radius, default is 1.0
         """
         super().__init__(*args, **kwargs)
-        self.center_point = cen_pt
+        self.center_point = cen_pt if cen_pt is not None else CadPt()
         self.radius = rad
 
     def __str__(self):
@@ -316,11 +317,11 @@ class Arc(Entity):
     """ Arc Entity for CAD geometry derived from Entity class.
     """
 
-    def __init__(self, cen_pt=CadPt(), rad=1.0, start_ang=0.0, end_ang=90.0,
+    def __init__(self, cen_pt=None, rad=1.0, start_ang=0.0, end_ang=90.0,
                  cw=False, *args, **kwargs):
         """ Constructor for the Arc Entity
 
-            cen_pt: CadPt, center point
+            cen_pt: CadPt, center point, default = CadPt()
 
             rad: float, radius, default is 1.0
 
@@ -331,7 +332,7 @@ class Arc(Entity):
             cw: bool, clockwise, default is False
         """
         super().__init__(*args, **kwargs)
-        self.center_point = cen_pt
+        self.center_point = cen_pt if cen_pt is not None else CadPt()
         self.radius = rad
         self.start_angle = start_ang
         self.end_angle = end_ang
