@@ -23,6 +23,22 @@ class CadPt():
     x: float = 0.0
     y: float = 0.0
 
+    @classmethod
+    def from_tuple(cls, coords: tuple):  # cls is CadPt
+        """ Constructor for tuple
+
+            coords: tuple of (x, y)
+        """
+        return cls(*coords)
+
+    @classmethod
+    def from_cadpt(cls, cad_point):
+        """ Constructor for CadPt
+
+            cad_point: CadPt
+        """
+        return cls(cad_point.x, cad_point.y)
+
     def __str__(self):
         return (f'{self.__class__.__name__}: Position = ({self.x}, {self.y})')
 
@@ -32,10 +48,10 @@ class CadPt():
         return (self.x, self.y)
 
     @position.setter
-    def position(self, coord: tuple):
+    def position(self, coords: tuple):
         """ Sets the new x, y coordinates of the CadPt.
 
-                coord: tuple, set CadPt's(x, y) coordinate
+                coords: tuple, set CadPt's(x, y) coordinate
 
             Usage
             -----
@@ -46,8 +62,8 @@ class CadPt():
                 >>> print('cpt =', cpt.position)
                 >>> CadPt(x=-10.0, y=28.5)
         """
-        self.x = coord[0]
-        self.y = coord[1]
+        self.x = coords[0]
+        self.y = coords[1]
 
     @position.deleter
     def position(self):
@@ -71,7 +87,38 @@ class CadPt():
 
             other: CadPt
         """
-        return sqrt((self.x-other.x)**2 + (self.y-other.y)**2)
+        return sqrt((other.x-self.x)**2 + (other.y-self.y)**2)
+
+    @staticmethod
+    def distance_between_pts(x1, y1, x2, y2):
+        """ Returns the distance between two points
+
+            x1: float, x coordinate of first point
+            y1: float, y coordinate of first point
+
+            x2: float, x coordinate of second point
+            y2: float, y coordinate of second point
+        """
+        return sqrt((x2-x1)**2 + (y2-y1)**2)
+
+    @staticmethod
+    def angle_of_line(x1, y1, x2, y2):
+        """ Angle of imaginary line made by two points
+
+            x1: float, x coordinate of line's first point
+            y1: float, y coordinate of line's first point
+
+            x2: float, x coordinate of line's second point
+            y2: float, y coordinate of line's second point
+        """
+        if isclose(x1, x2, abs_tol=1.0E-10):
+            # rt_atan2 not used because of the need to set precision
+            tmp = -pi/2 if ((y2-y1) < 0.0) else pi/2
+        else:
+            # safe to use atan2 since x2-x1=0.0 is taken care of
+            tmp = atan2((y2-y1), (x2-x1))
+
+        return degrees(tmp if (tmp >= 0.0) else 2.0 * pi + tmp)  # tmp -ve
 
     # Returns an angle in degrees of a line defined by two endpoints,
     # (x1,y1) to (x2,y2).
@@ -89,14 +136,7 @@ class CadPt():
         y1 = self.y
         x2 = other.x
         y2 = other.y
-        if isclose(x1, x2, abs_tol=1.0E-10):
-            # rt_atan2 not used because of the need to set precision
-            tmp = -pi/2 if ((y2-y1) < 0.0) else pi/2
-        else:
-            # safe to use atan2 since x2-x1=0.0 is taken care of
-            tmp = atan2((y2-y1), (x2-x1))
-
-        return degrees(tmp if (tmp >= 0.0) else 2.0 * pi + tmp)  # tmp -ve
+        return self.angle_of_line(x1, y1, x2, y2)
 
     def is_coincident(self, other):
         """ Returns whether both points are coincident, that is, they
@@ -177,9 +217,9 @@ class Point(Entity):
         return self.pt_position.position
 
     @position.setter
-    def position(self, coord: tuple):
+    def position(self, coords: tuple):
         """ Sets the Point to a tuple of (x, y) """
-        self.pt_position = coord
+        self.pt_position = coords
 
     def distance_to(self, other):
         """ Returns the distance from this Entity's point
@@ -226,9 +266,9 @@ class Line(Entity):
         return self.start_point.position
 
     @lstart.setter
-    def lstart(self, coord: tuple):
+    def lstart(self, coords: tuple):
         """ Sets the Line's start point to a tuple of (x, y) """
-        self.start_point = coord
+        self.start_point = coords
 
     @property
     def lend(self):
@@ -236,9 +276,9 @@ class Line(Entity):
         return self.end_point.position
 
     @lend.setter
-    def lend(self, coord: tuple):
+    def lend(self, coords: tuple):
         """ Sets the Line's end point to a tuple of (x, y) """
-        self.end_point = coord
+        self.end_point = coords
 
     def length(self):
         """ Returns the length of Line """
@@ -287,9 +327,9 @@ class Circle(Entity):
         return self.center_point.position
 
     @center.setter
-    def center(self, coord: tuple):
+    def center(self, coords: tuple):
         """ Sets the Center Point to a tuple of (x, y) """
-        self.center_point = coord
+        self.center_point = coords
 
     @property
     def diameter(self):  # no radius because it can access by .radius
@@ -367,9 +407,9 @@ class Arc(Entity):
         return self.center_point.position
 
     @center.setter
-    def center(self, coord: tuple):
+    def center(self, coords: tuple):
         """ Sets the Arc center point to a tuple of (x, y) """
-        self.center_point = coord
+        self.center_point = coords
 
     @property
     def sweep_angle(self):
