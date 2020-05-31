@@ -25,9 +25,9 @@ class DemoModel(DictModel):
     def update_price(self):
         """ Update price biz logic
         """
-        new_total_price = self.get_value('quantity') * self.get_value(
+        new_total_price = self.getvalue('quantity') * self.getvalue(
             'unit_price')
-        self.set_value('total_price', new_total_price)
+        self.setvalue('total_price', new_total_price)
 
 
 class DemoController:
@@ -52,9 +52,9 @@ class DemoController:
             msg: str, message selected by User
         """
         if msg == 'None':
-            self._model.set_value(self._view.rb_msg.GetName(), None)
+            self._model.setvalue(self._view.rb_msg.GetName(), None)
         else:
-            self._model.set_value(self._view.rb_msg.GetName(), msg)
+            self._model.setvalue(self._view.rb_msg.GetName(), msg)
 
     def qty_updated(self):
         """ Controller's task for quantity spin control
@@ -63,8 +63,8 @@ class DemoController:
         # Any sync between controls is done here.
         # quantity managed by spin control ui
         # sync ctrl new value with model value
-        self._model.set_value(self._view.spic_qty.GetName(),
-                              self._view.spic_qty.GetValue())
+        self._model.setvalue(self._view.spic_qty.GetName(),
+                             self._view.spic_qty.GetValue())
         # Note here that the Model updates price not the Controller!
         # All biz logic no matter how simple is managed by the Model
         self._model.update_price()
@@ -131,9 +131,9 @@ class DemoView(wx.Panel):
         # self.Bind(wx.EVT_TEXT_ENTER, self.float_updated, self.tc_float_data)
         ipo += 1
         # the combobox Control
-        self.answer_ls = ['friends', 'advertising',
-                          'web search', 'Yellow Pages']
-        stxt = wx.StaticText(self, label="How did you hear from us ?")
+        self.answer_ls = ['Fantastic!', 'I love it!', 'Ok only', 'Can do',
+                          'So so only', 'Too complicated']
+        stxt = wx.StaticText(self, label="How did you like this test?")
         gb_sizer.Add(stxt, pos=(ipo, 0))
         self.cb_survey = wx.ComboBox(self, size=(
             120, -1), choices=self.answer_ls, style=wx.CB_DROPDOWN)
@@ -142,11 +142,12 @@ class DemoView(wx.Panel):
         self.Bind(wx.EVT_TEXT, self.evt_text, self.cb_survey)
         ipo += 1
         # Checkbox
-        self.chb_insure = wx.CheckBox(self,
-                                      label="Do you want Insured Shipment ?")
-        gb_sizer.Add(self.chb_insure, pos=(ipo, 0), span=(1, 2),
+        self.chb_query = wx.CheckBox(
+            self,
+            label="Do you want more complex tests in the future?")
+        gb_sizer.Add(self.chb_query, pos=(ipo, 0), span=(1, 2),
                      flag=wx.BOTTOM, border=5)
-        self.Bind(wx.EVT_CHECKBOX, self.evt_check_box, self.chb_insure)
+        self.Bind(wx.EVT_CHECKBOX, self.evt_check_box, self.chb_query)
         ipo += 1
         # Radio Box demo
         radio_ls = ['None', 'Ok!', 'Not Ok!']
@@ -246,9 +247,9 @@ class DemoView(wx.Panel):
         # Make sure the listener is already created before any method call!
         # Follow the order of listener creation in __init__ method.
         if ltr is self.tc_info:
-            ltr.SetLabel(self._model.get_value(ltr.GetName()))
+            ltr.SetLabel(self._model.getvalue(ltr.GetName()))
         elif ltr is self.rb_msg:
-            val = self._model.get_str_value(ltr.GetName())
+            val = self._model.getstrvalue(ltr.GetName())
             # background defaults to white when foreground is set
             self.tc_text_msg.SetBackgroundColour(self.menu_color)
             if val == 'Not Ok!':
@@ -257,27 +258,27 @@ class DemoView(wx.Panel):
                 self.tc_text_msg.SetForegroundColour('forest green')
             self.tc_text_msg.SetValue(val)
         elif ltr is self.tc_unit_price:
-            val = self._model.get_str_value(ltr.GetName(), '{:.2f}')
+            val = self._model.getstrvalue(ltr.GetName(), '{:.2f}')
             ltr.SetLabel(val)
         elif ltr is self.spic_qty:
-            ltr.SetValue(self._model.get_value(ltr.GetName()))
+            ltr.SetValue(self._model.getvalue(ltr.GetName()))
         elif ltr is self.tc_total_price:
-            val = self._model.get_str_value(ltr.GetName(), '{:.2f}')
+            val = self._model.getstrvalue(ltr.GetName(), '{:.2f}')
             ltr.SetLabel(val)
 
     def evt_radio_box(self, event):
         val = event.GetString()
-        self.tc_display.AppendText('EvtRadioBox: %s\n' % val)
+        self.tc_display.AppendText(f'EvtRadioBox: {val}\n')
         self._controller.change_msg(val)
 
     def evt_combo_box(self, event):
         self.tc_display.AppendText(
-            'EvtComboBox: %s\n' % event.GetString())
+            f'EvtComboBox: {event.GetString()}\n')
 
     def spic_qty_updated(self, event):
         # Updates both quantity and total price
         self.tc_display.AppendText(
-            'EvtSpinCtrl: %d\n' % self.spic_qty.GetValue())
+            f'EvtSpinCtrl: {self.spic_qty.GetValue()}\n')
         self._controller.qty_updated()
 
     def on_close(self, event):
@@ -290,10 +291,10 @@ class DemoView(wx.Panel):
         self.tc_display.AppendText(self._model.model_report())
 
     def evt_text(self, event):
-        self.tc_display.AppendText('EvtText: %s\n' % event.GetString())
+        self.tc_display.AppendText(f'EvtText: {event.GetString()}\n')
 
     def evt_check_box(self, event):
-        self.tc_display.AppendText('EvtCheckBox: %d\n' % event.Checked())
+        self.tc_display.AppendText(f'EvtCheckBox: {event.IsChecked()}\n')
 
 
 class MainWindow(wx.Frame):

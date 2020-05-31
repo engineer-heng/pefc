@@ -8,6 +8,8 @@
 """ Generic Models for MVC Implementations.
     It is based on a listener model. The model is generic and it can
     be used for any GUI API like wxpython, tkinter etc.
+    However each version must be customized to the GUI package because of the
+    GetParent() and GetName() function call.
     DictModel that store data in a dictionary.
 """
 
@@ -21,6 +23,7 @@ class DictModel:
         it is related to this data model.
         The Model's biz logic can be tested independently without any
         views, controllers and registered listeners' help.
+        This version is for wxpython.
     """
 
     def __init__(self, model_dict):
@@ -61,7 +64,7 @@ class DictModel:
         # which can occur inside the notify method and be unidentified.
         if hasattr(listener, 'notify'):
             listener.notify()
-        elif hasattr(listener.GetParent(), 'notify'):
+        elif hasattr(listener.GetParent(), 'notify'):  # allow one panel only
             listener.GetParent().notify(listener)
         else:
             msg = "{}::{}'s Parent {} don't have notify()".format(
@@ -73,6 +76,8 @@ class DictModel:
     def unregister(self, field_name, listener):
         """ Unregister the control as a listener
 
+            field_name: str, name of field in database record
+
             listener: GUI controls
         """
         try:
@@ -81,10 +86,9 @@ class DictModel:
             # verify field name is valid in dbase
             if field_name in self._mdl_dc.keys():  # actually no listeners
                 return
-            print("Model unregister KeyError: '{}' does not exist".format(
-                field_name))
+            print(f"Model unregister KeyError: '{field_name}' does not exist")
 
-    def get_value(self, field_name, default=None):
+    def getvalue(self, field_name, default=None):
         """ Get the value from the Model
 
             field_name: str, name of field in database record
@@ -94,8 +98,7 @@ class DictModel:
         try:
             value = self._mdl_dc[field_name]
         except KeyError:  # print message and continue
-            print("Model get_value KeyError: '{}' does not exist".format(
-                  field_name))
+            print(f"Model get_value KeyError: '{field_name}' does not exist")
             value = None
         else:
             if default is not None:
@@ -104,7 +107,7 @@ class DictModel:
 
         return value
 
-    def get_str_value(self, field_name, str_fmt=None):
+    def getstrvalue(self, field_name, str_fmt=None):
         """ Get the value from the Model and convert it into
             a formatted string using the str_fmt parameter.
             This is a helper function for GUI Text Controls which
@@ -118,7 +121,7 @@ class DictModel:
 
             return: formatted str value of field or '' if value is None.
         """
-        val = self.get_value(field_name)
+        val = self.getvalue(field_name)
         if val is None:
             val = ''
         else:
@@ -126,10 +129,11 @@ class DictModel:
                 val = str_fmt.format(val)
         return val
 
-    def set_value(self, field_name, new_value):
+    def setvalue(self, field_name, new_value):
         """ Sets value and notifies all listeners of the change
 
             field_name: str, name of field in database record
+
             new_value: new value of field
         """
         # Don't allow accidental creation of a new field name with new value
@@ -137,8 +141,7 @@ class DictModel:
         if field_name in self._mdl_dc.keys():
             self._mdl_dc[field_name] = new_value
         else:
-            print("Model set_value KeyError: '{}' does not exist".format(
-                field_name))
+            print(f"Model set_value KeyError: '{field_name}' does not exist")
         self._notify_listeners(field_name)
 
     def _notify_listeners(self, field_name):
@@ -154,8 +157,7 @@ class DictModel:
             # verify field name is valid in dbase
             if field_name in self._mdl_dc.keys():  # actually no listeners
                 return
-            print("Notification KeyError: '{}' does not exist".format(
-                  field_name))
+            print(f"Notification KeyError: '{field_name}' does not exist")
         else:
             if len(listeners) == 0:
                 return

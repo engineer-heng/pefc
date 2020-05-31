@@ -57,7 +57,7 @@ class FloatValidator(wx.Validator):
     def TransferToWindow(self):
         text_ctrl = self.GetWindow()
         text_ctrl.SetValue(
-            self._model.get_str_value(text_ctrl.GetName(), '{}'))
+            self._model.getstrvalue(text_ctrl.GetName(), '{}'))
         return True
 
     def TransferFromWindow(self):
@@ -70,5 +70,5 @@ class FloatValidator(wx.Validator):
                           wx.OK | wx.ICON_ERROR)
             text_ctrl.SetValue('')
             return False
-        self._model.set_value(text_ctrl.GetName(), val)
+        self._model.setvalue(text_ctrl.GetName(), val)
         return True
