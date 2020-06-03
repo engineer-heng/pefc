@@ -56,6 +56,13 @@ class DemoController:
         else:
             self._model.setvalue(self._view.rb_msg.GetName(), msg)
 
+    def get_floating_point_validator(self):
+        """ Controller returns the FloatValidator with data value limits
+            and pass its reponsibilities to the validator
+        """
+        # self._model can also supply the limits
+        return FloatValidator(self._model, 0.0, 300.0)
+
     def qty_updated(self):
         """ Controller's task for quantity spin control
         """
@@ -123,8 +130,10 @@ class DemoView(wx.Panel):
         stxt = wx.StaticText(self, label="Floating Point Data :")
         gb_sizer.Add(stxt, pos=(ipo, 0))
         self.tc_float_data = wx.TextCtrl(
-            self, value='', size=(200, -1), style=wx.TE_PROCESS_ENTER,
-            validator=FloatValidator(self._model, 0.0, 500.0),
+            self, value='', size=(200, -1),
+            style=wx.TE_PROCESS_ENTER,  # get tab and CR
+            validator=self._controller.get_floating_point_validator(),
+            # validator=FloatValidator(self._model, 0.0, 300.0),
             name='float_data')
         gb_sizer.Add(self.tc_float_data, pos=(ipo, 1))
         self.Bind(wx.EVT_TEXT, self.evt_text, self.tc_float_data)
@@ -215,17 +224,22 @@ class DemoView(wx.Panel):
 
         # A buttons row demo
         hb_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        btn_okay = wx.Button(self, wx.ID_OK)  # Use standard button ID
+        btn_okay.SetDefault()
         btn_close = wx.Button(self, label='Close')
         btn_clr_display = wx.Button(self, label='Clear Display')
-        btn_model = wx.Button(self, label="Show Model Info")
+        btn_info = wx.Button(self, label="Show Model Info")
+        self.Bind(wx.EVT_BUTTON, self.on_okay, btn_okay)
         self.Bind(wx.EVT_BUTTON, self.on_close, btn_close)
-        self.Bind(wx.EVT_BUTTON, self.on_confirm, btn_clr_display)
-        self.Bind(wx.EVT_BUTTON, self.on_save, btn_model)
+        self.Bind(wx.EVT_BUTTON, self.on_clr_display, btn_clr_display)
+        self.Bind(wx.EVT_BUTTON, self.on_info, btn_info)
+        hb_sizer2.Add(btn_okay)
+        hb_sizer2.Add(10, -1, 0)  # add spacer in-between
         hb_sizer2.Add(btn_close)
-        hb_sizer2.Add(20, -1, 0)  # add spacer in-between
+        hb_sizer2.Add(10, -1, 0)  # add spacer in-between
         hb_sizer2.Add(btn_clr_display)
-        hb_sizer2.Add(20, -1, 0)  # add spacer in-between
-        hb_sizer2.Add(btn_model)
+        hb_sizer2.Add(10, -1, 0)  # add spacer in-between
+        hb_sizer2.Add(btn_info)
 
         vb_sizer_main = wx.BoxSizer(wx.VERTICAL)
         vb_sizer_main.Add(hb_sizer1, 0, wx.ALL, 5)  # grid bag and logger
@@ -233,8 +247,8 @@ class DemoView(wx.Panel):
         vb_sizer_main.Add((10, 5))  # add spacer after button row
         self.SetSizerAndFit(vb_sizer_main)
 
-        # init the validators
-        self.TransferDataToWindow()
+        # init the validators' controls
+        self.TransferDataToWindow()  # use this directly instead of InitDialog
 
     def notify(self, ltr):
         """ The View's job is to update its displayed data from the model and
@@ -281,13 +295,17 @@ class DemoView(wx.Panel):
             f'EvtSpinCtrl: {self.spic_qty.GetValue()}\n')
         self._controller.qty_updated()
 
+    def on_okay(self, event):
+        # transfer data from validators' control
+        self.TransferDataFromWindow()
+
     def on_close(self, event):
         self.GetParent().Close(True)
 
-    def on_confirm(self, event):
+    def on_clr_display(self, event):
         self.tc_display.Clear()
 
-    def on_save(self, event):
+    def on_info(self, event):
         self.tc_display.AppendText(self._model.model_report())
 
     def evt_text(self, event):
@@ -302,7 +320,8 @@ class MainWindow(wx.Frame):
         super().__init__(parent, title=title, *args, **kwargs)
 
         # A StatusBar in the bottom of the window
-        self.CreateStatusBar().SetStatusText('Show status here')
+        self.mwstatus_bar = self.CreateStatusBar()
+        self.mwstatus_bar.SetStatusText('Try all the controls. Enjoy!')
 
         # Setting up the menu.
         filemenu = wx.Menu()
@@ -342,20 +361,27 @@ class MainWindow(wx.Frame):
 
 
 if __name__ == '__main__':
-    app = wx.App(False)
-    # MVC Tests
-    model_dict = {'info': 'MVC Demo using wxpython',
-                  'text_data': None,
-                  'float_data': 8.8,
-                  'shipping_insurance': False,
-                  'message': None,
-                  'unit_price': 8.00,
-                  'quantity': 1,
-                  'total_price': 0.0
-                  }
-    # Init the Model which in a real app has databases and biz logic in it.
-    model = DemoModel(model_dict)
-    frame = MainWindow(None, model, "Practical MVC Demo")
-    frame.Show()
+    import traceback
 
-    app.MainLoop()
+    try:
+        app = wx.App(False)
+        # MVC Tests
+        model_dict = {'info': 'MVC Demo using wxpython',
+                      'text_data': None,
+                      'float_data': 11.8,
+                      'test_survey': False,
+                      'message': None,
+                      'unit_price': 8.00,
+                      'quantity': 1,
+                      'total_price': 0.0
+                      }
+        # Init the Model which in a real app has databases and biz logic in it.
+        model = DemoModel(model_dict)
+        frame = MainWindow(None, model, "Practical MVC Demo")
+        # frame.InitDialog()
+        frame.Show()
+
+        app.MainLoop()
+
+    except Exception:
+        traceback.print_exc()
