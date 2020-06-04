@@ -5,7 +5,7 @@
 """
 import wx
 from pefc.genericmodels import DictModel
-from pefc.validators import FloatValidator
+from pefc.validators import FloatValidator, IntegerValidator
 
 
 class DemoModel(DictModel):
@@ -62,6 +62,13 @@ class DemoController:
         """
         # self._model may also supply the limits
         return FloatValidator(self._model, 0.0, 300.0)
+
+    def get_int_validator(self):
+        """ Controller returns the IntValidator with data value limits
+            and pass its reponsibilities to the validator
+        """
+        # self._model may also supply the limits
+        return IntegerValidator(self._model, -50, 150)
 
     def qty_updated(self):
         """ Controller's task for quantity spin control
@@ -143,7 +150,7 @@ class DemoView(wx.Panel):
         self.tc_int_data = wx.TextCtrl(
             self, value='', size=(200, -1),
             style=wx.TE_PROCESS_ENTER,  # get tab and CR
-            # validator=self._controller.get_floating_point_validator(),
+            validator=self._controller.get_int_validator(),
             name='int_data')
         gb_sizer.Add(self.tc_int_data, pos=(ipo, 1))
         self.Bind(wx.EVT_TEXT, self.evt_text, self.tc_int_data)
@@ -233,21 +240,33 @@ class DemoView(wx.Panel):
 
         # A buttons row demo
         hb_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-        # btn_okay = wx.Button(self, wx.ID_OK)  # Use standard button ID
-        # btn_okay.SetDefault()
-        btn_close = wx.Button(self, label='Close')
+
+        # Use standard button IDs for validators to work correctly
+        btn_okay = wx.Button(self, wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.on_okay, btn_okay)
+        btn_okay.SetDefault()
+        btn_cancel = wx.Button(self, wx.ID_CANCEL)
+        self.Bind(wx.EVT_BUTTON, self.on_cancel, btn_cancel)
+
+        # only for standard buttons e.g. ID_OK and ID_CANCEL
+        btn_sizer = wx.StdDialogButtonSizer()  # for look and feel
+        btn_sizer.AddButton(btn_okay)
+        btn_sizer.AddButton(btn_cancel)
+        btn_sizer.Realize()
+
+        # non-standard buttons
+        btn_update = wx.Button(self, label='Update')
         btn_clr_display = wx.Button(self, label='Clear Display')
         btn_info = wx.Button(self, label="Show Model Info")
-        # self.Bind(wx.EVT_BUTTON, self.on_okay, btn_okay)
-        self.Bind(wx.EVT_BUTTON, self.on_close, btn_close)
+        self.Bind(wx.EVT_BUTTON, self.on_update, btn_update)
         self.Bind(wx.EVT_BUTTON, self.on_clr_display, btn_clr_display)
         self.Bind(wx.EVT_BUTTON, self.on_info, btn_info)
-        # hb_sizer2.Add(btn_okay)
-        # hb_sizer2.Add(10, -1, 0)  # add spacer in-between
-        hb_sizer2.Add(btn_close)
+        hb_sizer2.Add(btn_sizer)
         hb_sizer2.Add(10, -1, 0)  # add spacer in-between
+        hb_sizer2.Add(btn_update)
+        hb_sizer2.Add(10, -1, 0)
         hb_sizer2.Add(btn_clr_display)
-        hb_sizer2.Add(10, -1, 0)  # add spacer in-between
+        hb_sizer2.Add(10, -1, 0)
         hb_sizer2.Add(btn_info)
 
         vb_sizer_main = wx.BoxSizer(wx.VERTICAL)
@@ -257,7 +276,7 @@ class DemoView(wx.Panel):
         self.SetSizerAndFit(vb_sizer_main)
 
         # init the validators' controls
-        self.TransferDataToWindow()  # use this directly instead of InitDialog
+        self.TransferDataToWindow()  # use this instead of InitDialog
 
     def notify(self, ltr):
         """ The View's job is to update its displayed data from the model and
@@ -305,11 +324,17 @@ class DemoView(wx.Panel):
         self._controller.qty_updated()
 
     def on_okay(self, event):
-        # This is done automatically for dialog box but panel need DIY
-        # transfer data from validators' control
-        self.TransferDataFromWindow()
+        # This is done automatically for dialog box but panel need to DIY
+        # For all validators' control
+        if self.Validate() and self.TransferDataFromWindow():
+            self.GetParent().Close(True)
 
-    def on_close(self, event):
+    def on_update(self, event):
+        # Update model data For all validators' control
+        if self.Validate():
+            self.TransferDataFromWindow()
+
+    def on_cancel(self, event):
         self.GetParent().Close(True)
 
     def on_clr_display(self, event):
@@ -379,7 +404,7 @@ if __name__ == '__main__':
         model_dict = {'info': 'MVC Demo using wxpython',
                       'text_data': None,
                       'float_data': 78.68,
-                      'integer_data': 118,
+                      'int_data': 118,
                       'test_survey': False,
                       'message': None,
                       'unit_price': 8.00,
@@ -393,6 +418,7 @@ if __name__ == '__main__':
         frame.Show()
 
         app.MainLoop()
+        print(model.fields_report())
 
     except Exception:
         traceback.print_exc()

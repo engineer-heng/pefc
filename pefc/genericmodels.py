@@ -177,18 +177,18 @@ class DictModel:
         """ Returns model data and listeners in str report format
             for debugging purposes.
         """
-        ls1 = self.model_fields_report()
-        ls2 = self.model_listeners_report()
+        rep1 = self.fields_report()
+        rep2 = self.listeners_report()
 
-        return "".join(ls1) + "".join(ls2)
+        return rep1 + rep2
 
-    def model_fields_report(self):
+    def fields_report(self):
         ls = ["MODEL DATA FIELDS REPORT\n"]
         for k, v in self._mdl_dc.items():
             ls.append("{} = {}\n".format(k, v))
-        return ls
+        return "".join(ls)
 
-    def model_listeners_report(self):
+    def listeners_report(self):
         ls = ["MODEL LISTENERS REPORT\n"]
         for k, v in self._listeners_dc.items():
             # build a new str set for reporting/debugging purposes
@@ -206,4 +206,4 @@ class DictModel:
                                                                 ltr.GetName())
                 vs.add(rs)
             ls.append("{} <= {}\n".format(k, vs))
-        return ls
+        return "".join(ls)
