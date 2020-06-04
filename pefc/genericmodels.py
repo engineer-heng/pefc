@@ -177,10 +177,19 @@ class DictModel:
         """ Returns model data and listeners in str report format
             for debugging purposes.
         """
-        ls1 = ["MODEL DATA FIELDS REPORT\n"]
+        ls1 = self.model_fields_report()
+        ls2 = self.model_listeners_report()
+
+        return "".join(ls1) + "".join(ls2)
+
+    def model_fields_report(self):
+        ls = ["MODEL DATA FIELDS REPORT\n"]
         for k, v in self._mdl_dc.items():
-            ls1.append("{} = {}\n".format(k, v))
-        ls2 = ["MODEL LISTENERS REPORT\n"]
+            ls.append("{} = {}\n".format(k, v))
+        return ls
+
+    def model_listeners_report(self):
+        ls = ["MODEL LISTENERS REPORT\n"]
         for k, v in self._listeners_dc.items():
             # build a new str set for reporting/debugging purposes
             # listener_class::listener_field_name=>listener_parent_class
@@ -196,5 +205,5 @@ class DictModel:
                     rs = '{}::{} <= <No notify method!>'.format(type(ltr),
                                                                 ltr.GetName())
                 vs.add(rs)
-            ls2.append("{} <= {}\n".format(k, vs))
-        return "".join(ls1) + "".join(ls2)
+            ls.append("{} <= {}\n".format(k, vs))
+        return ls

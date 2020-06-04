@@ -5,6 +5,7 @@
 """
 import math
 import wx
+from genericmodels import DictModel
 
 
 class FloatValidator(wx.Validator):
@@ -65,7 +66,7 @@ class FloatValidator(wx.Validator):
 
         try:
             self.fvalue = float(text)
-        except ValueError:
+        except ValueError:  # should not happen unless model data error
             text_ctrl.SetBackgroundColour("pink")
             text_ctrl.SetFocus()
             text_ctrl.Refresh()
@@ -93,7 +94,7 @@ class FloatValidator(wx.Validator):
 
     def TransferToWindow(self):
         text_ctrl = self.GetWindow()  # correct protocol
-        # no validation if error is from developer
+        # no validation if error is from developer, final value is validated
         text_ctrl.SetValue(
             self._model.getstrvalue(text_ctrl.GetName(), '{}'))
         return True
@@ -122,8 +123,83 @@ class FloatValidator(wx.Validator):
         elif kcode == 45:  # '-' = 45, not needed is  '+' = 43
             if text_ctrl.GetInsertionPoint() != 0:  # allow '-' at pos 0 only
                 return
-        elif kcode == 13 or kcode == 9:  # 13=CR and 9=TAB
+        elif kcode == 13:  # 13=CR for style=wx.TE_PROCESS_ENTER
+            self.TransferFromWindow()
+            return  # prevent double processing
+        elif kcode == 9:  # 9=TAB for style=wx.TE_PROCESS_ENTER
             self.TransferFromWindow()
         else:  # 44 comma or 46 dot, 32 space and other keys swallowed up
             return
         event.Skip()  # send for default event handling by text ctrl
+
+
+if __name__ == '__main__':
+
+    class CheckValidatorsDialog(wx.Dialog):
+
+        def __init__(self, parent, mdl, *args, **kwargs):
+
+            super().__init__(parent, *args, **kwargs)
+            self._model = mdl
+
+            heading = "DIALOG BOX DEMO"
+            stxt_heading = wx.StaticText(self, label=heading)
+            font = wx.Font(wx.FontInfo(12).Bold().Underlined())
+            stxt_heading.SetFont(font)
+
+            # Create the text controls and set the validators
+            # floating point tests
+            stxt_fv = wx.StaticText(self, label="Floating value:")
+            tc_float_data = wx.TextCtrl(
+                self, value='', size=(100, -1),
+                style=wx.TE_PROCESS_ENTER,  # get tab and CR
+                validator=FloatValidator(self._model, 0.0, 150),
+                name='float_value')
+            # integer data tests
+            stxt_iv = wx.StaticText(self, label="Integer value:")
+            tc_int_data = wx.TextCtrl(
+                self, value='', size=(100, -1),
+                style=wx.TE_PROCESS_ENTER,  # get tab and CR
+                # validator=self._controller.get_floating_point_validator(),
+                name='int_value')
+
+            fgs = wx.FlexGridSizer(2, 2, 5, 5)
+            fgs.Add(stxt_fv, 0, wx.ALIGN_RIGHT)
+            fgs.Add(tc_float_data, 0, wx.EXPAND)
+            fgs.Add(stxt_iv, 0, wx.ALIGN_RIGHT)
+            fgs.Add(tc_int_data, 0, wx.EXPAND)
+
+            # Use standard button IDs for validators to work correctly
+            btn_okay = wx.Button(self, wx.ID_OK)
+            btn_okay.SetDefault()
+            btn_cancel = wx.Button(self, wx.ID_CANCEL)
+
+            btn_sizer = wx.StdDialogButtonSizer()
+            btn_sizer.AddButton(btn_okay)
+            btn_sizer.AddButton(btn_cancel)
+            btn_sizer.Realize()
+
+            # Layout with sizers
+            vbs_main = wx.BoxSizer(wx.VERTICAL)
+            vbs_main.Add(stxt_heading)
+            vbs_main.Add((10, 10))
+            vbs_main.Add(fgs)
+            vbs_main.Add((10, 10))
+            vbs_main.Add(btn_sizer)
+
+            self.SetSizerAndFit(vbs_main)
+            self.CenterOnScreen()
+
+    app = wx.App(False)
+
+    mydict = {"float_value": None, "int_value": None}
+    mymodel = DictModel(mydict)
+
+    with CheckValidatorsDialog(None, mymodel,
+                               title='Validators Test') as dlg:
+        if dlg.ShowModal() == wx.ID_OK:
+            print(mymodel)
+        else:
+            print('Data Entry Dialog cancelled')
+
+    app.MainLoop()

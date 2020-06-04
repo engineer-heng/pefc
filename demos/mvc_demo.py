@@ -60,7 +60,7 @@ class DemoController:
         """ Controller returns the FloatValidator with data value limits
             and pass its reponsibilities to the validator
         """
-        # self._model can also supply the limits
+        # self._model may also supply the limits
         return FloatValidator(self._model, 0.0, 300.0)
 
     def qty_updated(self):
@@ -105,7 +105,7 @@ class DemoView(wx.Panel):
         # Sizers demos
         ipo = 0  # Using ipo makes it easier to add rows
         gb_sizer = wx.GridBagSizer(hgap=5, vgap=5)
-        heading = "DEMO VIEW"
+        heading = "PANEL DEMO"
         self.stxt_heading = wx.StaticText(self, label=heading)
         font = wx.Font(wx.FontInfo(12).Bold().Underlined())
         self.stxt_heading.SetFont(font)
@@ -133,11 +133,20 @@ class DemoView(wx.Panel):
             self, value='', size=(200, -1),
             style=wx.TE_PROCESS_ENTER,  # get tab and CR
             validator=self._controller.get_floating_point_validator(),
-            # validator=FloatValidator(self._model, 0.0, 300.0),
             name='float_data')
         gb_sizer.Add(self.tc_float_data, pos=(ipo, 1))
         self.Bind(wx.EVT_TEXT, self.evt_text, self.tc_float_data)
-        # self.Bind(wx.EVT_TEXT_ENTER, self.float_updated, self.tc_float_data)
+        ipo += 1
+        # integer data tests
+        stxt = wx.StaticText(self, label="Integer Data :")
+        gb_sizer.Add(stxt, pos=(ipo, 0))
+        self.tc_int_data = wx.TextCtrl(
+            self, value='', size=(200, -1),
+            style=wx.TE_PROCESS_ENTER,  # get tab and CR
+            # validator=self._controller.get_floating_point_validator(),
+            name='int_data')
+        gb_sizer.Add(self.tc_int_data, pos=(ipo, 1))
+        self.Bind(wx.EVT_TEXT, self.evt_text, self.tc_int_data)
         ipo += 1
         # the combobox Control
         self.answer_ls = ['Fantastic!', 'I love it!', 'Ok only', 'Can do',
@@ -224,17 +233,17 @@ class DemoView(wx.Panel):
 
         # A buttons row demo
         hb_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
-        btn_okay = wx.Button(self, wx.ID_OK)  # Use standard button ID
-        btn_okay.SetDefault()
+        # btn_okay = wx.Button(self, wx.ID_OK)  # Use standard button ID
+        # btn_okay.SetDefault()
         btn_close = wx.Button(self, label='Close')
         btn_clr_display = wx.Button(self, label='Clear Display')
         btn_info = wx.Button(self, label="Show Model Info")
-        self.Bind(wx.EVT_BUTTON, self.on_okay, btn_okay)
+        # self.Bind(wx.EVT_BUTTON, self.on_okay, btn_okay)
         self.Bind(wx.EVT_BUTTON, self.on_close, btn_close)
         self.Bind(wx.EVT_BUTTON, self.on_clr_display, btn_clr_display)
         self.Bind(wx.EVT_BUTTON, self.on_info, btn_info)
-        hb_sizer2.Add(btn_okay)
-        hb_sizer2.Add(10, -1, 0)  # add spacer in-between
+        # hb_sizer2.Add(btn_okay)
+        # hb_sizer2.Add(10, -1, 0)  # add spacer in-between
         hb_sizer2.Add(btn_close)
         hb_sizer2.Add(10, -1, 0)  # add spacer in-between
         hb_sizer2.Add(btn_clr_display)
@@ -296,6 +305,7 @@ class DemoView(wx.Panel):
         self._controller.qty_updated()
 
     def on_okay(self, event):
+        # This is done automatically for dialog box but panel need DIY
         # transfer data from validators' control
         self.TransferDataFromWindow()
 
@@ -368,7 +378,8 @@ if __name__ == '__main__':
         # MVC Tests
         model_dict = {'info': 'MVC Demo using wxpython',
                       'text_data': None,
-                      'float_data': 11.8,
+                      'float_data': 78.68,
+                      'integer_data': 118,
                       'test_survey': False,
                       'message': None,
                       'unit_price': 8.00,
