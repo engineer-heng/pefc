@@ -113,6 +113,7 @@ class FloatValidator(wx.Validator):
         # process key char to prevent non-numeric entry
         kcode = event.GetKeyCode()
         text_ctrl = event.GetEventObject()
+        skip = True
         # print(kcode)  # for debugging
         # NOTE: Update data on CR, tab or change of focus is incorrect
         # because if cancelled cannot undo changes especially in forms.
@@ -123,18 +124,20 @@ class FloatValidator(wx.Validator):
         elif kcode == self.decimal_point:  # '.' or ',' internationalization
             # decimal_point should only appear once
             if text_ctrl.GetValue().rfind(chr(self.decimal_point)) != -1:
-                return
+                skip = False
         elif kcode == 45:  # '-' = 45, not needed is  '+' = 43
             if text_ctrl.GetInsertionPoint() != 0:  # allow '-' at pos 0 only
-                return
+                skip = False
         elif kcode == 13:  # 13=CR for style=wx.TE_PROCESS_ENTER
             self.Validate(text_ctrl.GetParent())  # OK button update value
-            return  # prevent double processing
+            skip = False  # prevent double processing
         elif kcode == 9:  # 9=TAB for style=wx.TE_PROCESS_ENTER
             self.Validate(text_ctrl.GetParent())  # OK button update value
         else:  # 44 comma or 46 dot, 32 space and other keys swallowed up
-            return
-        event.Skip()  # send for default event handling by text ctrl
+            skip = False
+
+        if skip is True:
+            event.Skip()  # send for default event handling by text ctrl
 
 
 class IntegerValidator(wx.Validator):
@@ -239,21 +242,24 @@ class IntegerValidator(wx.Validator):
         # process key char to prevent non-numeric entry
         kcode = event.GetKeyCode()
         text_ctrl = event.GetEventObject()
+        skip = True
         # print(kcode)  # for debugging
         # '0' = 48 and '9' = 57,
         if (48 <= kcode <= 57) or self.allowedkeys.get(kcode, False):
             pass
         elif kcode == 45:  # '-' = 45, not needed is  '+' = 43
             if text_ctrl.GetInsertionPoint() != 0:  # allow '-' at pos 0 only
-                return
+                skip = False
         elif kcode == 13:  # 13=CR for style=wx.TE_PROCESS_ENTER
             self.Validate(text_ctrl.GetParent())  # OK button update value
-            return  # prevent double processing
+            skip = False  # prevent double processing
         elif kcode == 9:  # 9=TAB for style=wx.TE_PROCESS_ENTER
             self.Validate(text_ctrl.GetParent())  # OK button update value
         else:  # 44 comma or 46 dot, 32 space and other keys swallowed up
-            return
-        event.Skip()  # send for default event handling by text ctrl
+            skip = False
+
+        if skip is True:
+            event.Skip()  # send for default event handling by text ctrl
 
 
 if __name__ == '__main__':
@@ -271,20 +277,20 @@ if __name__ == '__main__':
             self._model = mdl
 
             heading = "DIALOG BOX DEMO"
-            stxt_heading = wx.StaticText(self, label=heading)
+            st_heading = wx.StaticText(self, label=heading)
             font = wx.Font(wx.FontInfo(12).Bold().Underlined())
-            stxt_heading.SetFont(font)
+            st_heading.SetFont(font)
 
             # Create the text controls and set the validators
             # floating point tests
-            stxt_fv = wx.StaticText(self, label="Float value(fv):")
+            st_fv = wx.StaticText(self, label="Float value(fv):")
             tc_float_data = wx.TextCtrl(
                 self, value='', size=(100, -1),
                 style=wx.TE_PROCESS_ENTER,  # get tab and CR
                 validator=FloatValidator(self._model, -50.0, 150.0),
                 name='float_value')
             # integer data tests
-            stxt_iv = wx.StaticText(self, label="Integer value(iv):")
+            st_iv = wx.StaticText(self, label="Integer value(iv):")
             tc_int_data = wx.TextCtrl(
                 self, value='', size=(100, -1),
                 style=wx.TE_PROCESS_ENTER,  # get tab and CR
@@ -292,37 +298,37 @@ if __name__ == '__main__':
                 name='int_value')
 
             fgs = wx.FlexGridSizer(2, 3, 5, 5)
-            fgs.Add(stxt_fv, 0, wx.ALIGN_RIGHT)
+            fgs.Add(st_fv, 0, wx.ALIGN_RIGHT)
             fgs.Add(tc_float_data, 0, wx.EXPAND)
             fgs.Add(wx.StaticText(self, label="limits (-50.0, 150.0)"),
                     0, wx.EXPAND)
-            fgs.Add(stxt_iv, 0, wx.ALIGN_RIGHT)
+            fgs.Add(st_iv, 0, wx.ALIGN_RIGHT)
             fgs.Add(tc_int_data, 0, wx.EXPAND)
             fgs.Add(wx.StaticText(self, label="limits (-100, 100)"),
                     0, wx.EXPAND)
 
             # Use standard button IDs for validators to work correctly
-            btn_okay = wx.Button(self, wx.ID_OK)
-            btn_okay.SetDefault()
-            btn_cancel = wx.Button(self, wx.ID_CANCEL)
+            bu_okay = wx.Button(self, wx.ID_OK)
+            bu_okay.SetDefault()
+            bu_cancel = wx.Button(self, wx.ID_CANCEL)
             # non-standard buttons
-            # btn_show_fields = wx.Button(self, wx.ID_ANY, 'Show Fields')
-            # self.Bind(wx.EVT_BUTTON, self.show_fields, btn_show_fields)
+            # bu_show_fields = wx.Button(self, wx.ID_ANY, 'Show Fields')
+            # self.Bind(wx.EVT_BUTTON, self.show_fields, bu_show_fields)
             # only for standard buttons e.g. ID_OK and ID_CANCEL
-            btn_sizer = wx.StdDialogButtonSizer()  # for look and feel
-            btn_sizer.AddButton(btn_okay)
-            btn_sizer.AddButton(btn_cancel)
-            btn_sizer.Realize()
+            bus = wx.StdDialogButtonSizer()  # for look and feel
+            bus.AddButton(bu_okay)
+            bus.AddButton(bu_cancel)
+            bus.Realize()
 
             # Layout with sizers
             vbs_main = wx.BoxSizer(wx.VERTICAL)
-            vbs_main.Add(stxt_heading)
+            vbs_main.Add(st_heading)
             vbs_main.Add((10, 10))
             vbs_main.Add(fgs)
             vbs_main.Add((10, 10))
-            # vbs_main.Add(btn_show_fields)
+            # vbs_main.Add(bu_show_fields)
             # vbs_main.Add((10, 10))
-            vbs_main.Add(btn_sizer)
+            vbs_main.Add(bus)
 
             self.SetSizerAndFit(vbs_main)
             self.CenterOnScreen()

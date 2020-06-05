@@ -77,8 +77,8 @@ class DemoController:
         # Any sync between controls is done here.
         # quantity managed by spin control ui
         # sync ctrl new value with model value
-        self._model.setvalue(self._view.spic_qty.GetName(),
-                             self._view.spic_qty.GetValue())
+        self._model.setvalue(self._view.scl_qty.GetName(),
+                             self._view.scl_qty.GetValue())
         # Note here that the Model updates price not the Controller!
         # All biz logic no matter how simple is managed by the Model
         self._model.update_price()
@@ -111,58 +111,58 @@ class DemoView(wx.Panel):
 
         # Sizers demos
         ipo = 0  # Using ipo makes it easier to add rows
-        gb_sizer = wx.GridBagSizer(hgap=5, vgap=5)
+        gbs = wx.GridBagSizer(hgap=5, vgap=5)
         heading = "PANEL DEMO"
-        self.stxt_heading = wx.StaticText(self, label=heading)
+        self.st_heading = wx.StaticText(self, label=heading)
         font = wx.Font(wx.FontInfo(12).Bold().Underlined())
-        self.stxt_heading.SetFont(font)
-        gb_sizer.Add(self.stxt_heading, pos=(ipo, 0))
+        self.st_heading.SetFont(font)
+        gbs.Add(self.st_heading, pos=(ipo, 0))
         ipo += 1
-        stxt = wx.StaticText(self, label="Show information: ")
-        gb_sizer.Add(stxt, pos=(ipo, 0))
+        st = wx.StaticText(self, label="Show information: ")
+        gbs.Add(st, pos=(ipo, 0))
         self.tc_info = wx.TextCtrl(self, style=wx.TE_READONLY,
                                    size=(200, -1), name='info')
         self._model.register('info', self.tc_info)
-        gb_sizer.Add(self.tc_info, pos=(ipo, 1))
+        gbs.Add(self.tc_info, pos=(ipo, 1))
         ipo += 1
         # the edit control - one line version for text data
-        stxt = wx.StaticText(self, label="Text Data :")
-        gb_sizer.Add(stxt, pos=(ipo, 0))
+        st = wx.StaticText(self, label="Text Data :")
+        gbs.Add(st, pos=(ipo, 0))
         self.tc_txt_data = wx.TextCtrl(
             self, value="Enter text data here", size=(200, -1))
-        gb_sizer.Add(self.tc_txt_data, pos=(ipo, 1))
+        gbs.Add(self.tc_txt_data, pos=(ipo, 1))
         self.Bind(wx.EVT_TEXT, self.evt_text, self.tc_txt_data)
         ipo += 1
         # floating point tests
-        stxt = wx.StaticText(self, label="Floating Point Data :")
-        gb_sizer.Add(stxt, pos=(ipo, 0))
+        st = wx.StaticText(self, label="Floating Point Data :")
+        gbs.Add(st, pos=(ipo, 0))
         self.tc_float_data = wx.TextCtrl(
             self, value='', size=(200, -1),
             style=wx.TE_PROCESS_ENTER,  # get tab and CR
             validator=self._controller.get_floating_point_validator(),
             name='float_data')
-        gb_sizer.Add(self.tc_float_data, pos=(ipo, 1))
+        gbs.Add(self.tc_float_data, pos=(ipo, 1))
         self.Bind(wx.EVT_TEXT, self.evt_text, self.tc_float_data)
         ipo += 1
         # integer data tests
-        stxt = wx.StaticText(self, label="Integer Data :")
-        gb_sizer.Add(stxt, pos=(ipo, 0))
+        st = wx.StaticText(self, label="Integer Data :")
+        gbs.Add(st, pos=(ipo, 0))
         self.tc_int_data = wx.TextCtrl(
             self, value='', size=(200, -1),
             style=wx.TE_PROCESS_ENTER,  # get tab and CR
             validator=self._controller.get_int_validator(),
             name='int_data')
-        gb_sizer.Add(self.tc_int_data, pos=(ipo, 1))
+        gbs.Add(self.tc_int_data, pos=(ipo, 1))
         self.Bind(wx.EVT_TEXT, self.evt_text, self.tc_int_data)
         ipo += 1
         # the combobox Control
         self.answer_ls = ['Fantastic!', 'I love it!', 'Ok only', 'Can do',
                           'So so only', 'Too complicated']
-        stxt = wx.StaticText(self, label="How did you like this test?")
-        gb_sizer.Add(stxt, pos=(ipo, 0))
+        st = wx.StaticText(self, label="How did you like this test?")
+        gbs.Add(st, pos=(ipo, 0))
         self.cb_survey = wx.ComboBox(self, size=(
             120, -1), choices=self.answer_ls, style=wx.CB_DROPDOWN)
-        gb_sizer.Add(self.cb_survey, pos=(ipo, 1))
+        gbs.Add(self.cb_survey, pos=(ipo, 1))
         self.Bind(wx.EVT_COMBOBOX, self.evt_combo_box, self.cb_survey)
         self.Bind(wx.EVT_TEXT, self.evt_text, self.cb_survey)
         ipo += 1
@@ -170,8 +170,8 @@ class DemoView(wx.Panel):
         self.chb_query = wx.CheckBox(
             self,
             label="Do you want more complex tests in the future?")
-        gb_sizer.Add(self.chb_query, pos=(ipo, 0), span=(1, 2),
-                     flag=wx.BOTTOM, border=5)
+        gbs.Add(self.chb_query, pos=(ipo, 0), span=(1, 2),
+                flag=wx.BOTTOM, border=5)
         self.Bind(wx.EVT_CHECKBOX, self.evt_check_box, self.chb_query)
         ipo += 1
         # Radio Box demo
@@ -179,101 +179,100 @@ class DemoView(wx.Panel):
         self.rb_msg = wx.RadioBox(
             self, label="Choose Text Message:", choices=radio_ls,
             majorDimension=3, style=wx.RA_SPECIFY_COLS, name='message')
-        gb_sizer.Add(self.rb_msg, pos=(ipo, 0))
+        gbs.Add(self.rb_msg, pos=(ipo, 0))
         self.Bind(wx.EVT_RADIOBOX, self.evt_radio_box, self.rb_msg)
         self.tc_text_msg = wx.TextCtrl(
             self,
             style=wx.TE_READONLY | wx.TE_CENTER)
         font = wx.Font(wx.FontInfo(16).Bold())
         self.tc_text_msg.SetFont(font)
-        gb_sizer.Add(
+        gbs.Add(
             self.tc_text_msg, pos=(ipo, 1),
             flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
         self._model.register('message', self.rb_msg)
 
         # add a spacer to the sizer
         ipo += 1
-        gb_sizer.Add((10, 10), pos=(ipo, 1))  # spacer for demo purposes
+        gbs.Add((10, 10), pos=(ipo, 1))  # spacer for demo purposes
         ipo += 1
         # FlexGridSizer and data fields sync demo
         # quantity and total price work in tandem with qty
-        fg_sizer = wx.FlexGridSizer(3, 2, 10, 10)
+        fgs = wx.FlexGridSizer(3, 2, 10, 10)
         # unit price
-        stxt_upr = wx.StaticText(self, label="Unit price: ")
+        st_upr = wx.StaticText(self, label="Unit price: ")
         self.tc_unit_price = wx.TextCtrl(self, style=wx.TE_READONLY,
                                          size=(100, -1), name='unit_price')
         # quantity
-        stxt_qty = wx.StaticText(self, label="Quantity: ")
-        self.spic_qty = wx.SpinCtrl(self, size=(75, -1),
-                                    style=wx.TE_PROCESS_ENTER,
-                                    name='quantity')
-        self.Bind(wx.EVT_SPINCTRL, self.spic_qty_updated, self.spic_qty)
-        self.Bind(wx.EVT_TEXT_ENTER, self.spic_qty_updated, self.spic_qty)
+        st_qty = wx.StaticText(self, label="Quantity: ")
+        self.scl_qty = wx.SpinCtrl(self, size=(75, -1),
+                                   style=wx.TE_PROCESS_ENTER,
+                                   name='quantity')
+        self.Bind(wx.EVT_SPINCTRL, self.scl_qty_updated, self.scl_qty)
+        self.Bind(wx.EVT_TEXT_ENTER, self.scl_qty_updated, self.scl_qty)
         # total price
-        stxt_tpr = wx.StaticText(self, label="Total price: ")
+        st_tpr = wx.StaticText(self, label="Total price: ")
         self.tc_total_price = wx.TextCtrl(self, style=wx.TE_READONLY,
                                           size=(100, -1), name='total_price')
         # Register and init values from Model
         self._model.register('unit_price', self.tc_unit_price)
-        self._model.register('quantity', self.spic_qty)
+        self._model.register('quantity', self.scl_qty)
         self._model.register('total_price', self.tc_total_price)
         # Make sure qty and total price are in sync
         self._controller.qty_updated()
-        fg_sizer.AddMany([(stxt_upr), (self.tc_unit_price, 1, wx.EXPAND),
-                          (stxt_qty), (self.spic_qty, 1, wx.EXPAND),
-                          (stxt_tpr), (self.tc_total_price, 1, wx.EXPAND)
-                          ])
+        fgs.AddMany([(st_upr), (self.tc_unit_price, 1, wx.EXPAND),
+                     (st_qty), (self.scl_qty, 1, wx.EXPAND),
+                     (st_tpr), (self.tc_total_price, 1, wx.EXPAND)
+                     ])
         # add as part of gb
-        gb_sizer.Add(fg_sizer, pos=(ipo, 0))
+        gbs.Add(fgs, pos=(ipo, 0))
 
         # A multiline TextCtrl demo to display model data and other info
         self.tc_display = wx.TextCtrl(
             self, size=(300, 400),
             style=wx.TE_MULTILINE | wx.TE_READONLY)
         # StaticBoxSizer demo
-        vsb_sizer_display = wx.StaticBoxSizer(wx.VERTICAL, self, 'Display')
-        vsb_sizer_display.Add(self.tc_display, 0, wx.ALL, 5)
+        vsbs_display = wx.StaticBoxSizer(wx.VERTICAL, self, 'Display')
+        vsbs_display.Add(self.tc_display, 0, wx.ALL, 5)
 
-        hb_sizer1 = wx.BoxSizer(wx.HORIZONTAL)
-        hb_sizer1.Add(gb_sizer, 0, wx.ALL, 5)
-        hb_sizer1.Add(vsb_sizer_display)
+        hbs1 = wx.BoxSizer(wx.HORIZONTAL)
+        hbs1.Add(gbs, 0, wx.ALL, 5)
+        hbs1.Add(vsbs_display)
 
         # A buttons row demo
-        hb_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
+        hbs2 = wx.BoxSizer(wx.HORIZONTAL)
 
         # Use standard button IDs for validators to work correctly
-        btn_okay = wx.Button(self, wx.ID_OK)
-        self.Bind(wx.EVT_BUTTON, self.on_okay, btn_okay)
-        btn_okay.SetDefault()
-        btn_cancel = wx.Button(self, wx.ID_CANCEL)
-        self.Bind(wx.EVT_BUTTON, self.on_cancel, btn_cancel)
+        bu_okay = wx.Button(self, wx.ID_OK)
+        self.Bind(wx.EVT_BUTTON, self.on_okay, bu_okay)
+        bu_cancel = wx.Button(self, wx.ID_CANCEL)
+        self.Bind(wx.EVT_BUTTON, self.on_cancel, bu_cancel)
 
         # only for standard buttons e.g. ID_OK and ID_CANCEL
-        btn_sizer = wx.StdDialogButtonSizer()  # for look and feel
-        btn_sizer.AddButton(btn_okay)
-        btn_sizer.AddButton(btn_cancel)
-        btn_sizer.Realize()
+        bus = wx.StdDialogButtonSizer()  # for look and feel
+        bus.AddButton(bu_okay)
+        bus.AddButton(bu_cancel)
+        bus.Realize()
 
         # non-standard buttons
-        btn_update = wx.Button(self, label='Update')
-        btn_clr_display = wx.Button(self, label='Clear Display')
-        btn_info = wx.Button(self, label="Show Model Info")
-        self.Bind(wx.EVT_BUTTON, self.on_update, btn_update)
-        self.Bind(wx.EVT_BUTTON, self.on_clr_display, btn_clr_display)
-        self.Bind(wx.EVT_BUTTON, self.on_info, btn_info)
-        hb_sizer2.Add(btn_sizer)
-        hb_sizer2.Add(10, -1, 0)  # add spacer in-between
-        hb_sizer2.Add(btn_update)
-        hb_sizer2.Add(10, -1, 0)
-        hb_sizer2.Add(btn_clr_display)
-        hb_sizer2.Add(10, -1, 0)
-        hb_sizer2.Add(btn_info)
+        bu_update = wx.Button(self, label='Update')
+        bu_clr_display = wx.Button(self, label='Clear Display')
+        bu_info = wx.Button(self, label="Show Model Info")
+        self.Bind(wx.EVT_BUTTON, self.on_update, bu_update)
+        self.Bind(wx.EVT_BUTTON, self.on_clr_display, bu_clr_display)
+        self.Bind(wx.EVT_BUTTON, self.on_info, bu_info)
+        hbs2.Add(bus)
+        hbs2.Add(10, -1, 0)  # add spacer in-between
+        hbs2.Add(bu_update)
+        hbs2.Add(10, -1, 0)
+        hbs2.Add(bu_clr_display)
+        hbs2.Add(10, -1, 0)
+        hbs2.Add(bu_info)
 
-        vb_sizer_main = wx.BoxSizer(wx.VERTICAL)
-        vb_sizer_main.Add(hb_sizer1, 0, wx.ALL, 5)  # grid bag and logger
-        vb_sizer_main.Add(hb_sizer2, 0, wx.CENTER, 5)  # buttons
-        vb_sizer_main.Add((10, 5))  # add spacer after button row
-        self.SetSizerAndFit(vb_sizer_main)
+        vbs_main = wx.BoxSizer(wx.VERTICAL)
+        vbs_main.Add(hbs1, 0, wx.ALL, 5)  # grid bag and logger
+        vbs_main.Add(hbs2, 0, wx.CENTER, 5)  # buttons
+        vbs_main.Add((10, 5))  # add spacer after button row
+        self.SetSizerAndFit(vbs_main)
 
         # init the validators' controls
         self.TransferDataToWindow()  # use this instead of InitDialog
@@ -302,7 +301,7 @@ class DemoView(wx.Panel):
         elif ltr is self.tc_unit_price:
             val = self._model.getstrvalue(ltr.GetName(), '{:.2f}')
             ltr.SetLabel(val)
-        elif ltr is self.spic_qty:
+        elif ltr is self.scl_qty:
             ltr.SetValue(self._model.getvalue(ltr.GetName()))
         elif ltr is self.tc_total_price:
             val = self._model.getstrvalue(ltr.GetName(), '{:.2f}')
@@ -317,10 +316,10 @@ class DemoView(wx.Panel):
         self.tc_display.AppendText(
             f'EvtComboBox: {event.GetString()}\n')
 
-    def spic_qty_updated(self, event):
+    def scl_qty_updated(self, event):
         # Updates both quantity and total price
         self.tc_display.AppendText(
-            f'EvtSpinCtrl: {self.spic_qty.GetValue()}\n')
+            f'EvtSpinCtrl: {self.scl_qty.GetValue()}\n')
         self._controller.qty_updated()
 
     def on_okay(self, event):
