@@ -12,12 +12,19 @@
     GetParent() and GetName() function call.
     DictModel that store data in a dictionary.
 """
+import math
+from collections import namedtuple
 
 # TODO: DbaseModel that store data in a database using SQLAlchemy
 
+ValidationResult = namedtuple(
+    'ValidationResult', 'result,errormsg,title',
+    defaults=(None, '', ''))  # Python 3.7+ have defaults parameter
+
 
 class DictModel:
-    """ This is the 'Model'. The Model's responsibilites is to notify
+    """ This is the 'Model', the business logic layer.
+        The Model's responsibilites is to notify
         the listeners of the change in data so that they are all in sync.
         All implementations of the biz logic should be done here if
         it is related to this data model.
@@ -93,7 +100,7 @@ class DictModel:
 
             field_name: str, name of field in database record
 
-            default: default value if value is None or math.nan
+            default: default value if value is None
         """
         try:
             value = self._mdl_dc[field_name]
@@ -102,7 +109,8 @@ class DictModel:
             value = None
         else:
             if default is not None:
-                if value is None:  # cannot add math.isnan(value)
+                # should not add math.isnan(value) so it can return NaN
+                if value is None:
                     value = default
 
         return value
@@ -111,18 +119,20 @@ class DictModel:
         """ Get the value from the Model and convert it into
             a formatted string using the str_fmt parameter.
             This is a helper function for GUI Text Controls which
-            expects the data in a formmated string for display.
+            expects the data in a formatted string for display.
 
             field_name: str, name of field in database record
 
             str_fmt: str, string format e.g. '{:.2%}' or '{:8.6f}'
-            Default is None. if value is a str then no need
+            Default is None. If value is a str then no need
             to specify str_fmt.
 
             return: formatted str value of field or '' if value is None.
         """
         val = self.getvalue(field_name)
-        if val is None:
+        if val is None:  # represents NA
+            val = ''
+        elif isinstance(val, float) and math.isnan(val):  # represents NA
             val = ''
         else:
             if str_fmt is not None:
@@ -173,9 +183,35 @@ class DictModel:
                         type(ltr.GetParent()))
                     print(msg)
 
+    def validate(self, field_name, new_value):
+        """ This is a dispatch method to call the field's validate
+            function. In order for it to work correctly the function's
+            name must have the 'validate_' prefix followed by the
+            field name. For example the validate function for a field
+            named price is validate_price().
+
+            No implementation in DictModel therefore the derived class is
+            responsible to implement their own validate functions.
+
+            The validate function must return a ValidationResult type.
+
+            field_name: str, name of field in database record
+            new_value: Any, new value to be validated
+
+            This method calls the validate function on return.
+        """
+        # validate function name
+        vfunc_name = f'validate_{field_name}'
+        vfunc = getattr(self, vfunc_name, lambda: ValidationResult(
+            None, f'No validation function for {field_name}',
+            'Validation Error'))
+
+        # Call the method as we return it
+        return vfunc(field_name, new_value)
+
     def model_report(self):
-        """ Returns model data and listeners in str report format
-            for debugging purposes.
+        """ Returns the model's data fields and listeners in str report
+            format for debugging purposes.
         """
         rep1 = self.fields_report()
         rep2 = self.listeners_report()
@@ -183,12 +219,18 @@ class DictModel:
         return rep1 + rep2
 
     def fields_report(self):
+        """ Returns the model's data fields in str report format
+            for debugging purposes.
+        """
         ls = ["MODEL DATA FIELDS REPORT\n"]
         for k, v in self._mdl_dc.items():
             ls.append("{} = {}\n".format(k, v))
         return "".join(ls)
 
     def listeners_report(self):
+        """ Returns the model's listeners in str report format
+            for debugging purposes.
+        """
         ls = ["MODEL LISTENERS REPORT\n"]
         for k, v in self._listeners_dc.items():
             # build a new str set for reporting/debugging purposes

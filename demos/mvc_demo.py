@@ -5,11 +5,12 @@
 """
 import wx
 from pefc.genericmodels import DictModel
-from pefc.validators import FloatValidator, IntegerValidator
+from pefc.validators import FloatingPointValidator, IntegerValidator
 
 
 class DemoModel(DictModel):
-    """ This is the 'Model'. The Model's responsibilites is to notify
+    """ This is the 'Model', the business logic layer.
+        The Model's responsibilites is to notify
         the listeners of the change in data so that they are all in sync.
         All implementations of the biz logic should be done here if
         it is related to this data model.
@@ -31,7 +32,7 @@ class DemoModel(DictModel):
 
 
 class DemoController:
-    """ This is the 'Controller'.
+    """ This is the 'Controller', the Application logic layer.
         The User triggers an event through the View which acts
         on the event and calls the appropriate Controller.
         The Controller then calls the Model's methods to update data
@@ -57,18 +58,18 @@ class DemoController:
             self._model.setvalue(self._view.rb_msg.GetName(), msg)
 
     def get_floating_point_validator(self):
-        """ Controller returns the FloatValidator with data value limits
-            and pass its reponsibilities to the validator
+        """ Controller returns the FloatingPointValidator with data
+            value limits and pass its reponsibilities to the validator
         """
         # self._model may also supply the limits
-        return FloatValidator(self._model, 0.0, 300.0)
+        return FloatingPointValidator(self._model, (0.0, 300.0))
 
-    def get_int_validator(self):
-        """ Controller returns the IntValidator with data value limits
+    def get_integer_validator(self):
+        """ Controller returns the IntegerValidator with data value limits
             and pass its reponsibilities to the validator
         """
         # self._model may also supply the limits
-        return IntegerValidator(self._model, -50, 150)
+        return IntegerValidator(self._model, (-50, 150))
 
     def qty_updated(self):
         """ Controller's task for quantity spin control
@@ -85,7 +86,7 @@ class DemoController:
 
 
 class DemoView(wx.Panel):
-    """ This is the 'View'.
+    """ This is the 'View', the Presentation logic layer.
         Here a single Panel control that can be used to manage all or
         some of the controls on the Panel.
         Each control should have the name parameter set to the database field
@@ -150,7 +151,7 @@ class DemoView(wx.Panel):
         self.tc_int_data = wx.TextCtrl(
             self, value='', size=(200, -1),
             style=wx.TE_PROCESS_ENTER,  # get tab and CR
-            validator=self._controller.get_int_validator(),
+            validator=self._controller.get_integer_validator(),
             name='int_data')
         gbs.Add(self.tc_int_data, pos=(ipo, 1))
         self.Bind(wx.EVT_TEXT, self.evt_text, self.tc_int_data)
