@@ -163,10 +163,14 @@ class FloatingPointValidator(wx.Validator):
             return False
 
         # validations section
+        # If any tests failed then return result immediately and if pass
+        # proceed to the next test to avoid hiding the previous test result.
         retval = False
         if self.limits is not None:
             retval = check_limits(text_ctrl, self.value,
                                   self.minvalue, self.maxvalue)
+            if retval is False:
+                return retval
 
         if self._model_validate is True:
             fldname = text_ctrl.GetName()
@@ -523,6 +527,7 @@ if __name__ == '__main__':
             st_heading.SetFont(font)
 
             # Create the text controls and set the validators
+            # Tab sequence are in order of creation
             # floating point tests
             st_fv = wx.StaticText(self, label="Float value(fv):")
             tc_float_data = wx.TextCtrl(
@@ -531,15 +536,6 @@ if __name__ == '__main__':
                 validator=FloatingPointValidator(
                     self._model, (-50.0, 150.0)),
                 name='float_value')
-            tc_float_data.GetValidator().mustfill = False  # mustfill test
-            # model validator test
-            st_constraint = wx.StaticText(self, label="Constraint:")
-            tc_constraint = wx.TextCtrl(
-                self, value='', size=(100, -1),
-                style=wx.TE_PROCESS_ENTER,  # get tab and CR
-                validator=FloatingPointValidator(
-                    self._model, None, True),
-                name='constraint')
             # integer data tests
             st_iv = wx.StaticText(self, label="Integer value(iv):")
             tc_int_data = wx.TextCtrl(
@@ -547,6 +543,15 @@ if __name__ == '__main__':
                 style=wx.TE_PROCESS_ENTER,  # get tab and CR
                 validator=IntegerValidator(self._model, (-100, 100)),
                 name='int_value')
+            tc_float_data.GetValidator().mustfill = False  # mustfill test
+            # model validator test
+            st_constraint = wx.StaticText(self, label="Constraint value:")
+            tc_constraint = wx.TextCtrl(
+                self, value='', size=(100, -1),
+                style=wx.TE_PROCESS_ENTER,  # get tab and CR
+                validator=FloatingPointValidator(
+                    self._model, None, True),
+                name='constraint')
 
             fgs = wx.FlexGridSizer(3, 3, 5, 5)
             fgs.Add(st_fv, 0, wx.ALIGN_RIGHT)

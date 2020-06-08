@@ -202,9 +202,13 @@ class DictModel:
         """
         # validate function name
         vfunc_name = f'validate_{field_name}'
-        vfunc = getattr(self, vfunc_name, lambda: ValidationResult(
-            None, f'No validation function for {field_name}',
-            'Validation Error'))
+        vfunc = getattr(
+            self,
+            vfunc_name,
+            lambda field_name, new_value: ValidationResult(
+                None, f'No validation function for {field_name} in model',
+                'Validation Error')
+        )
 
         # Call the method as we return it
         return vfunc(field_name, new_value)
