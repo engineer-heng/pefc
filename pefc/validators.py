@@ -34,10 +34,16 @@ def highlight_off(ctrl):
 
 
 class GenericValidator(wx.Validator):
-    """ Validator for entering float values within the high and low limits.
-        This is a floating point validator for a wx.TextCtrl.
-        Currently only fixed format is supported on input,
-        i.e. scientific format with mantissa and exponent is not supported.
+    """ This GenericValidator is the base class for FloatingPointValidator,
+        IntegerValidator and TextValidator. Derive from this Validator for
+        your custom validator by setting dtype and dtype_code attributes.
+        For example the IntegerValidator is done by setting:
+            dtype = int
+            dtype_code = self.ValDtype.INTEGER
+
+        Only need to implement the __init__ and Clone method. For derived
+        class, implement the Clone method by just calling super().Clone().
+        The GenericValidator will handle the validation.
 
         Requirements
         ------------
@@ -46,8 +52,13 @@ class GenericValidator(wx.Validator):
            The field name must be present in the App's model data.
            This field name is used by the Validator to access the App's
            model data.
-        3. The App's model must implement getstrvalue and setvalue methods
+        3. The App's model must implement getvalue and setvalue methods.
            They use the field names to set and get data from the model.
+           The model can validate it's own field by implementing
+           validate_field_name method and setting the mdlvalidate parameter
+           to True. E.g. validate_price('price', new_value) method in the model
+           will validate the price field. The Validator will call the method
+           based on the field name.
 
         Changing the Validator's attributes
         -------------------------------
@@ -71,13 +82,15 @@ class GenericValidator(wx.Validator):
         312: True, 313: True,  # 312=End, 313=Home
         314: True, 315: True, 316: True, 317: True  # arrow keys
     }
-    # Validators data type enum
+    # Validator's data type enum
     ValDtype = Enum('ValDtype', 'STRING FLOAT INTEGER', module=__name__)
 
     def __init__(self, mdl, limits: None,
                  mdlvalidate=False, fill=True):
         """ Constructor for FloatValidator
-
+        This is a floating point validator for a wx.TextCtrl.
+        Currently only fixed format is supported on input,
+        i.e. scientific format with mantissa and exponent is not supported.
             Parameters
             ----------
               mdl: Model's data.
@@ -253,6 +266,22 @@ class FloatingPointValidator(GenericValidator):
 
     def __init__(self, mdl, limits: None,
                  mdlvalidate=False, fill=True):
+        """  Constructor for FloatPointValidator
+             This is a floating point validator for a wx.TextCtrl.
+             Currently only fixed format is supported on input, i.e.
+             scientific format with mantissa and exponent are not supported.
+
+             Parameters
+             ----------
+               mdl: Model's data.
+               limits: tuple of float values, (lower limit, upper limit).
+                 default is None.
+               mdlvalidate: bool, default is False. If True, the Validate()
+               method will call the model's validate_field_name() to validate
+               the field_name's value. Make sure that the model implement
+               the validate_field_name method.
+               fill: bool, default is True which means it must be filled.
+         """
         super().__init__(mdl, limits, mdlvalidate, fill)
         self.dtype = float  # override Generic Validator's default value
         self.dtype_code = self.ValDtype.FLOAT
@@ -265,6 +294,20 @@ class IntegerValidator(GenericValidator):
 
     def __init__(self, mdl, limits: None,
                  mdlvalidate=False, fill=True):
+        """  Constructor for IntegerValidator
+             This is a integer validator for a wx.TextCtrl.
+
+             Parameters
+             ----------
+               mdl: Model's data.
+               limits: tuple of int values, (lower limit, upper limit)
+                 default is None.
+               mdlvalidate: bool, default is False. If True, the Validate()
+               method will call the model's validate_field_name() to validate
+               the field_name's value. Make sure that the model implement
+               the validate_field_name method.
+               fill: bool, default is True which means it must be filled.
+         """
         super().__init__(mdl, limits, mdlvalidate, fill)
         self.dtype = int  # override Generic Validator's default value
         self.dtype_code = self.ValDtype.INTEGER
@@ -275,6 +318,20 @@ class IntegerValidator(GenericValidator):
 
 # Currently the TextValidator is same as GenericValidator
 class TextValidator(GenericValidator):
+    """  Constructor for TextValidator
+            This is a text validator for a wx.TextCtrl.
+
+            Parameters
+            ----------
+            mdl: Model's data.
+            limits: tuple of text's lengths, (lower limit, upper limit)
+                default is None.
+            mdlvalidate: bool, default is False. If True, the Validate()
+            method will call the model's validate_field_name() to validate
+            the field_name's value. Make sure that the model implement
+            the validate_field_name method.
+            fill: bool, default is True which means it must be filled.
+    """
 
     def __init__(self, mdl, limits: None,
                  mdlvalidate=False, fill=True):
@@ -333,7 +390,7 @@ if __name__ == '__main__':
                 validator=TextValidator(self._model, (0, 16)),
                 name='text_value')
             # model validator test
-            st_constraint = wx.StaticText(self, label="Constraint value:")
+            st_constraint = wx.StaticText(self, label="Constrained value:")
             tc_constraint = wx.TextCtrl(
                 self, value='', size=(100, -1),
                 style=wx.TE_PROCESS_ENTER,  # get tab and CR
@@ -406,19 +463,25 @@ if __name__ == '__main__':
                 return ValidationResult(
                     False, 'Value must be -3, 5 or 10', 'Input Error')
 
-    # run the demos
-    app = wx.App(False)
-    mydict = {"float_value": math.nan, "int_value": None, "text_value": '',
-              "constraint": None}
-    # create the App's model
-    mymodel = AppModel(mydict)
+    import traceback
 
-    with CheckValidatorsDialog(None, mymodel,
-                               title='Validators Test') as dlg:
-        if dlg.ShowModal() == wx.ID_OK:
-            print("Congragulations! Data Entry done correctly.")
-        else:
-            print('Data Entry Dialog cancelled!')
+    try:
+        # run the demos
+        app = wx.App(False)
+        mydict = {"float_value": math.nan, "int_value": None,
+                  "text_value": '', "constraint": None}
+        # create the App's model
+        mymodel = AppModel(mydict)
 
-    app.MainLoop()
-    print(mymodel.fields_report())  # must be after MainLoop()
+        with CheckValidatorsDialog(None, mymodel,
+                                   title='Validators Test') as dlg:
+            if dlg.ShowModal() == wx.ID_OK:
+                print("Congragulations! Data Entry done correctly.")
+            else:
+                print('Data Entry Dialog cancelled!')
+
+        app.MainLoop()
+        print(mymodel.fields_report())  # must be after MainLoop()
+
+    except Exception:
+        traceback.print_exc()
