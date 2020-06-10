@@ -3,9 +3,11 @@
     Stefano Borini.
     It avoids the use of wxpython MVC's recommended PyPubSub package.
 """
+import math
 import wx
 from pefc.genericmodels import DictModel
-from pefc.validators import FloatingPointValidator, IntegerValidator
+from pefc.validators import (TextValidator, FloatingPointValidator,
+                             IntegerValidator)
 
 
 class DemoModel(DictModel):
@@ -47,15 +49,19 @@ class DemoController:
         self._model = model
         self._view = view
 
-    def change_msg(self, msg):
-        """ Updates the RadioBox's text message change
-
-            msg: str, message selected by User
+    def get_text_validator(self):
+        """ Controller returns the TexttValidator with text length limits
+            and pass its reponsibilities to the validator
         """
-        if msg == 'None':
-            self._model.setvalue(self._view.rb_msg.GetName(), None)
-        else:
-            self._model.setvalue(self._view.rb_msg.GetName(), msg)
+        # self._model may also supply the limits
+        return TextValidator(self._model, (0, 20))
+
+    def get_msg_validator(self):
+        """ Controller returns the TexttValidator with text length limits
+            and pass its reponsibilities to the validator
+        """
+        # self._model may also supply the limits
+        return TextValidator(self._model, (0, 20), fill=False)
 
     def get_floating_point_validator(self):
         """ Controller returns the FloatingPointValidator with data
@@ -78,8 +84,8 @@ class DemoController:
         # Any sync between controls is done here.
         # quantity managed by spin control ui
         # sync ctrl new value with model value
-        self._model.setvalue(self._view.scl_qty.GetName(),
-                             self._view.scl_qty.GetValue())
+        self._model.setvalue(self._view.spcl_qty.GetName(),
+                             self._view.spcl_qty.GetValue())
         # Note here that the Model updates price not the Controller!
         # All biz logic no matter how simple is managed by the Model
         self._model.update_price()
@@ -121,8 +127,8 @@ class DemoView(wx.Panel):
         ipo += 1
         st = wx.StaticText(self, label="Show information: ")
         gbs.Add(st, pos=(ipo, 0))
-        self.tc_info = wx.TextCtrl(self, style=wx.TE_READONLY,
-                                   size=(200, -1), name='info')
+        self.tc_info = wx.TextCtrl(self, style=wx.TE_READONLY, size=(200, -1),
+                                   name='info')
         self._model.register('info', self.tc_info)
         gbs.Add(self.tc_info, pos=(ipo, 1))
         ipo += 1
@@ -130,7 +136,10 @@ class DemoView(wx.Panel):
         st = wx.StaticText(self, label="Text Data :")
         gbs.Add(st, pos=(ipo, 0))
         self.tc_txt_data = wx.TextCtrl(
-            self, value="Enter text data here", size=(200, -1))
+            self, value="", size=(200, -1),
+            style=wx.TE_PROCESS_ENTER,  # get tab and CR
+            validator=self._controller.get_text_validator(),
+            name='text_data')
         gbs.Add(self.tc_txt_data, pos=(ipo, 1))
         self.Bind(wx.EVT_TEXT, self.evt_text, self.tc_txt_data)
         ipo += 1
@@ -161,37 +170,43 @@ class DemoView(wx.Panel):
                           'So so only', 'Too complicated']
         st = wx.StaticText(self, label="How did you like this test?")
         gbs.Add(st, pos=(ipo, 0))
-        self.cb_survey = wx.ComboBox(self, size=(
-            120, -1), choices=self.answer_ls, style=wx.CB_DROPDOWN)
+        self.cb_survey = wx.ComboBox(
+            self,
+            size=(120, -1), choices=self.answer_ls,
+            style=wx.TE_PROCESS_ENTER | wx.CB_DROPDOWN,  # get tab and CR
+            validator=self._controller.get_text_validator(),
+            name='test_survey'
+        )
         gbs.Add(self.cb_survey, pos=(ipo, 1))
         self.Bind(wx.EVT_COMBOBOX, self.evt_combo_box, self.cb_survey)
         self.Bind(wx.EVT_TEXT, self.evt_text, self.cb_survey)
         ipo += 1
         # Checkbox
-        self.chb_query = wx.CheckBox(
+        self.chb_option = wx.CheckBox(
             self,
-            label="Do you want more complex tests in the future?")
-        gbs.Add(self.chb_query, pos=(ipo, 0), span=(1, 2),
+            label="Want special edition option?")
+        gbs.Add(self.chb_option, pos=(ipo, 0), span=(1, 2),
                 flag=wx.BOTTOM, border=5)
-        self.Bind(wx.EVT_CHECKBOX, self.evt_check_box, self.chb_query)
+        self.Bind(wx.EVT_CHECKBOX, self.evt_check_box, self.chb_option)
         ipo += 1
         # Radio Box demo
         radio_ls = ['None', 'Ok!', 'Not Ok!']
         self.rb_msg = wx.RadioBox(
             self, label="Choose Text Message:", choices=radio_ls,
-            majorDimension=3, style=wx.RA_SPECIFY_COLS, name='message')
+            majorDimension=3, style=wx.RA_SPECIFY_COLS)
         gbs.Add(self.rb_msg, pos=(ipo, 0))
         self.Bind(wx.EVT_RADIOBOX, self.evt_radio_box, self.rb_msg)
         self.tc_text_msg = wx.TextCtrl(
             self,
-            style=wx.TE_READONLY | wx.TE_CENTER)
+            style=wx.TE_READONLY | wx.TE_CENTER,
+            validator=self._controller.get_msg_validator(),
+            name='text_message'
+        )
         font = wx.Font(wx.FontInfo(16).Bold())
         self.tc_text_msg.SetFont(font)
         gbs.Add(
             self.tc_text_msg, pos=(ipo, 1),
             flag=wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL)
-        self._model.register('message', self.rb_msg)
-
         # add a spacer to the sizer
         ipo += 1
         gbs.Add((10, 10), pos=(ipo, 1))  # spacer for demo purposes
@@ -205,23 +220,24 @@ class DemoView(wx.Panel):
                                          size=(100, -1), name='unit_price')
         # quantity
         st_qty = wx.StaticText(self, label="Quantity: ")
-        self.scl_qty = wx.SpinCtrl(self, size=(75, -1),
-                                   style=wx.TE_PROCESS_ENTER,
-                                   name='quantity')
-        self.Bind(wx.EVT_SPINCTRL, self.scl_qty_updated, self.scl_qty)
-        self.Bind(wx.EVT_TEXT_ENTER, self.scl_qty_updated, self.scl_qty)
+        self.spcl_qty = wx.SpinCtrl(self, size=(75, -1),
+                                    style=wx.TE_PROCESS_ENTER,
+                                    name='quantity')
+        self.Bind(wx.EVT_SPINCTRL, self.spcl_qty_updated, self.spcl_qty)
+        # self.Bind(wx.EVT_TEXT_ENTER, self.spcl_qty_updated, self.spcl_qty)
         # total price
         st_tpr = wx.StaticText(self, label="Total price: ")
-        self.tc_total_price = wx.TextCtrl(self, style=wx.TE_READONLY,
+        self.tc_total_price = wx.TextCtrl(self,
+                                          style=wx.TE_READONLY,
                                           size=(100, -1), name='total_price')
         # Register and init values from Model
         self._model.register('unit_price', self.tc_unit_price)
-        self._model.register('quantity', self.scl_qty)
+        self._model.register('quantity', self.spcl_qty)
         self._model.register('total_price', self.tc_total_price)
         # Make sure qty and total price are in sync
         self._controller.qty_updated()
         fgs.AddMany([(st_upr), (self.tc_unit_price, 1, wx.EXPAND),
-                     (st_qty), (self.scl_qty, 1, wx.EXPAND),
+                     (st_qty), (self.spcl_qty, 1, wx.EXPAND),
                      (st_tpr), (self.tc_total_price, 1, wx.EXPAND)
                      ])
         # add as part of gb
@@ -290,37 +306,39 @@ class DemoView(wx.Panel):
         # Follow the order of listener creation in __init__ method.
         if ltr is self.tc_info:
             ltr.SetLabel(self._model.getvalue(ltr.GetName()))
-        elif ltr is self.rb_msg:
-            val = self._model.getstrvalue(ltr.GetName())
-            # background defaults to white when foreground is set
-            self.tc_text_msg.SetBackgroundColour(self.menu_color)
-            if val == 'Not Ok!':
-                self.tc_text_msg.SetForegroundColour('red')
-            else:
-                self.tc_text_msg.SetForegroundColour('forest green')
-            self.tc_text_msg.SetValue(val)
         elif ltr is self.tc_unit_price:
             val = self._model.getstrvalue(ltr.GetName(), '{:.2f}')
             ltr.SetLabel(val)
-        elif ltr is self.scl_qty:
+        elif ltr is self.spcl_qty:
             ltr.SetValue(self._model.getvalue(ltr.GetName()))
         elif ltr is self.tc_total_price:
             val = self._model.getstrvalue(ltr.GetName(), '{:.2f}')
             ltr.SetLabel(val)
 
     def evt_radio_box(self, event):
+        # process text_msg
         val = event.GetString()
         self.tc_display.AppendText(f'EvtRadioBox: {val}\n')
-        self._controller.change_msg(val)
+        # self._controller.change_msg(val)
+        if val == 'None':
+            self.tc_text_msg.SetValue('')
+        elif val == 'Not Ok!':
+            self.tc_text_msg.SetValue(val)
+            self.tc_text_msg.SetForegroundColour('red')
+        else:
+            self.tc_text_msg.SetValue(val)
+            self.tc_text_msg.SetForegroundColour('forest green')
+        # background defaults to white value is updated
+        self.tc_text_msg.SetBackgroundColour(self.menu_color)
 
     def evt_combo_box(self, event):
         self.tc_display.AppendText(
             f'EvtComboBox: {event.GetString()}\n')
 
-    def scl_qty_updated(self, event):
+    def spcl_qty_updated(self, event):
         # Updates both quantity and total price
         self.tc_display.AppendText(
-            f'EvtSpinCtrl: {self.scl_qty.GetValue()}\n')
+            f'EvtSpinCtrl: {self.spcl_qty.GetValue()}\n')
         self._controller.qty_updated()
 
     def on_okay(self, event):
@@ -333,6 +351,8 @@ class DemoView(wx.Panel):
         # Update model data For all validators' control
         if self.Validate():
             self.TransferDataFromWindow()
+        # fix background color change in text_msg
+        self.tc_text_msg.SetBackgroundColour(self.menu_color)
 
     def on_cancel(self, event):
         self.GetParent().Close(True)
@@ -402,13 +422,14 @@ if __name__ == '__main__':
         app = wx.App(False)
         # MVC Tests
         model_dict = {'info': 'MVC Demo using wxpython',
-                      'text_data': None,
-                      'float_data': 78.68,
-                      'int_data': 118,
-                      'test_survey': False,
-                      'message': None,
+                      'text_data': 'Enter text here',
+                      'float_data': math.nan,
+                      'int_data': None,
+                      'test_survey': None,
+                      'option': False,
+                      'text_message': None,  # need sync with rb
                       'unit_price': 8.00,
-                      'quantity': 1,
+                      'quantity': 0,
                       'total_price': 0.0
                       }
         # Init the Model which in a real app has databases and biz logic in it.
