@@ -24,13 +24,14 @@ class DemoModel(DictModel):
         # inherits from DictModel
         super().__init__(model_dict)
 
-    # Implementations to Model's biz logic and to update databases
-    def update_price(self):
-        """ Update price biz logic
+    def calc_new_total_price(self, new_qty):
+        """ Calculate new total_price as per biz logic.
         """
-        new_total_price = self.getvalue('quantity') * self.getvalue(
-            'unit_price')
-        self.setvalue('total_price', new_total_price)
+        # Implementations as per Model's biz logic to ensure correctness.
+        # Note here that the Model calculates price not the Controller!
+        # All biz logic no matter how simple is managed by the Model
+        # This is just a simple example in real situation it may complicated.
+        return new_qty * self.getvalue('unit_price')
 
 
 class DemoController:
@@ -77,18 +78,18 @@ class DemoController:
         # self._model may also supply the limits
         return IntegerValidator(self._model, (-50, 150))
 
-    def qty_updated(self):
-        """ Controller's task for quantity spin control
+    def update_model(self):
+        """ Controller's task is to update the model data on those
+            fields that are NOT handled by the validators.
+            This method is normally called by the ID_OK button.
         """
-        # Data validation should be done by the View's control not here.
-        # Any sync between controls is done here.
-        # quantity managed by spin control ui
-        # sync ctrl new value with model value
+        # Data validation already done by the View's control
         self._model.setvalue(self._view.spcl_qty.GetName(),
                              self._view.spcl_qty.GetValue())
-        # Note here that the Model updates price not the Controller!
-        # All biz logic no matter how simple is managed by the Model
-        self._model.update_price()
+
+        new_total_price = float(self._view.tc_total_price.GetValue())
+        self._model.setvalue(self._view.tc_total_price.GetName(),
+                             new_total_price)
 
 
 class DemoView(wx.Panel):
@@ -129,6 +130,7 @@ class DemoView(wx.Panel):
         gbs.Add(st, pos=(ipo, 0))
         self.tc_info = wx.TextCtrl(self, style=wx.TE_READONLY, size=(200, -1),
                                    name='info')
+        # no validator so use the model to init the info value
         self._model.register('info', self.tc_info)
         gbs.Add(self.tc_info, pos=(ipo, 1))
         ipo += 1
@@ -218,24 +220,31 @@ class DemoView(wx.Panel):
         st_upr = wx.StaticText(self, label="Unit price: ")
         self.tc_unit_price = wx.TextCtrl(self, style=wx.TE_READONLY,
                                          size=(100, -1), name='unit_price')
+        # no validator so use model to init unit_price. unit_price not editable
+        self._model.register('unit_price', self.tc_unit_price)
+
+        # quantity and total_price are managed by the model because
+        # SpinCtrl don't allow any validator. Both are also related.
         # quantity
         st_qty = wx.StaticText(self, label="Quantity: ")
-        self.spcl_qty = wx.SpinCtrl(self, size=(75, -1),
-                                    style=wx.TE_PROCESS_ENTER,
-                                    name='quantity')
+        self.spcl_qty = wx.SpinCtrl(
+            self, size=(75, -1),
+            style=wx.TE_PROCESS_ENTER,
+            name='quantity')
         self.Bind(wx.EVT_SPINCTRL, self.spcl_qty_updated, self.spcl_qty)
-        # self.Bind(wx.EVT_TEXT_ENTER, self.spcl_qty_updated, self.spcl_qty)
+        self.Bind(wx.EVT_TEXT_ENTER, self.spcl_qty_updated, self.spcl_qty)
         # total price
         st_tpr = wx.StaticText(self, label="Total price: ")
         self.tc_total_price = wx.TextCtrl(self,
                                           style=wx.TE_READONLY,
                                           size=(100, -1), name='total_price')
         # Register and init values from Model
-        self._model.register('unit_price', self.tc_unit_price)
+        # Must register in order of ctrl creation
+        # total_price is sync with quantity during registration
+        # total_price in model is ignored in case of errors in model data
         self._model.register('quantity', self.spcl_qty)
-        self._model.register('total_price', self.tc_total_price)
-        # Make sure qty and total price are in sync
-        self._controller.qty_updated()
+
+        # arrange ctrls in correct order
         fgs.AddMany([(st_upr), (self.tc_unit_price, 1, wx.EXPAND),
                      (st_qty), (self.spcl_qty, 1, wx.EXPAND),
                      (st_tpr), (self.tc_total_price, 1, wx.EXPAND)
@@ -298,22 +307,25 @@ class DemoView(wx.Panel):
         """ The View's job is to update its displayed data from the model and
             to make sure the data is displayed in the correct format.
             Should have no involvement from the Controller and
-            the Model's biz logic. Initialization should not be done here.
+            the Model's biz logic.
 
             listener: Specify the listener that is being notified.
         """
         # Make sure the listener is already created before any method call!
         # Follow the order of listener creation in __init__ method.
+        # init values managed by model
         if ltr is self.tc_info:
             ltr.SetLabel(self._model.getvalue(ltr.GetName()))
         elif ltr is self.tc_unit_price:
             val = self._model.getstrvalue(ltr.GetName(), '{:.2f}')
             ltr.SetLabel(val)
         elif ltr is self.spcl_qty:
-            ltr.SetValue(self._model.getvalue(ltr.GetName()))
-        elif ltr is self.tc_total_price:
-            val = self._model.getstrvalue(ltr.GetName(), '{:.2f}')
-            ltr.SetLabel(val)
+            new_qty = self._model.getvalue(ltr.GetName())
+            if new_qty is None or (isinstance(new_qty, float) and
+                                   math.isnan(new_qty)):
+                new_qty = 0
+            ltr.SetValue(new_qty)
+            self.sync_total_price(new_qty)
 
     def evt_radio_box(self, event):
         # process text_msg
@@ -336,19 +348,32 @@ class DemoView(wx.Panel):
             f'EvtComboBox: {event.GetString()}\n')
 
     def spcl_qty_updated(self, event):
-        # Updates both quantity and total price
-        self.tc_display.AppendText(
-            f'EvtSpinCtrl: {self.spcl_qty.GetValue()}\n')
-        self._controller.qty_updated()
+        # Get quantity and calculates total price
+        new_qty = self.spcl_qty.GetValue()
+        self.tc_display.AppendText(f'EvtSpinCtrl: {new_qty}\n')
+        self.sync_total_price(new_qty)
+
+    def sync_total_price(self, new_qty):
+        # get new total_price from model
+        new_total_price = self._model.calc_new_total_price(new_qty)
+        # show to user
+        self.tc_total_price.SetValue(f'{new_total_price:.2f}')
 
     def on_okay(self, event):
-        # This is done automatically for dialog box but panel need to DIY
-        # For all validators' control
+        # Update data to model for ctrls managed by model and will never
+        # be handled automatically by the DialogBox unlike validators
+        self._controller.update_model()  # both quantity and total_price
+
+        # This is done automatically for dialog box but for panel need to DIY.
+        # Updates all validators' control
         if self.Validate() and self.TransferDataFromWindow():
             self.GetParent().Close(True)
 
     def on_update(self, event):
-        # Update model data For all validators' control
+        # Update data to model for ctrls managed by model
+        self._controller.update_model()
+
+        # Update data to model for all validators' control
         if self.Validate():
             self.TransferDataFromWindow()
         # fix background color change in text_msg
@@ -424,13 +449,13 @@ if __name__ == '__main__':
         model_dict = {'info': 'MVC Demo using wxpython',
                       'text_data': 'Enter text here',
                       'float_data': math.nan,
-                      'int_data': None,
+                      'int_data': 15,
                       'test_survey': None,
                       'option': False,
                       'text_message': None,  # need sync with rb
                       'unit_price': 8.00,
-                      'quantity': 0,
-                      'total_price': 0.0
+                      'quantity': math.nan,
+                      'total_price': math.nan
                       }
         # Init the Model which in a real app has databases and biz logic in it.
         model = DemoModel(model_dict)
