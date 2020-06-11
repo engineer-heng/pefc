@@ -197,8 +197,8 @@ class GenericValidator(wx.Validator):
                 return False
             else:
                 highlight_off(text_ctrl)
-                return True
 
+        retval = True
         if self._model_validate is True:
             fldname = text_ctrl.GetName()
             # call the model's validate function
@@ -401,34 +401,34 @@ class DecimalValidator(GenericValidator):
 
 
 class BoolValidator(wx.Validator):
-    """ This is BoolValidator for a wx.CheckBox
+    """ This is BoolValidator for a wx.CheckBox. It can handle both the
+        default 2 state check box and 3 state check box.
+        The following style can be used for a 3 state check box.
+            style=wx.wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER
 
         Requirements
         ------------
-        1. Set style=wx.wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER
-        2. wx.CheckBox must have the name=field_name of data,
-            e.g. name='status'.
+        1. wx.CheckBox must have the name=field_name of data,
+           e.g. name='status'.
            The field name must be present in the App's model data.
            This field name is used by the Validator to access the App's
            model data.
-        3. The App's model must implement getvalue and setvalue methods.
+        2. The App's model must implement getvalue and setvalue methods.
            They use the field names to set and get data from the model.
            The model can validate it's own field by implementing
            validate_field_name method and setting the mdlvalidate parameter
-           to True. E.g. validate_price('status', new_value) method in
+           to True. E.g. validate_status('status', new_value) method in
            the model will validate the status field. The Validator will
            call the method based on the field name.
 
-        Changing the Validator's attributes
-        -----------------------------------
-        Because of cloning the, validator's attributes can only be
-        changed through CheckBox.GetValidator().
-        For example CheckBox.GetValidator().mustfill = False
     """
 
     def __init__(self, mdl, limit=None, mdlvalidate=False, fill=True):
         """ Constructor for BoolValidator
             This is a validator for a wx.CheckBox.
+
+            fill: bool, Only valid for 3 State CheckBox.
+                default is True which means the state must be True or False.
         """
         super().__init__()
 
@@ -447,6 +447,45 @@ class BoolValidator(wx.Validator):
                               self.mustfill)
 
     def Validate(self, parent):
+        # correct protocol to get the validator's associated control.
+        # self.text_ctrl in Validator cause NoneType obj
+        check_box = self.GetWindow()
+        if check_box.Is3State() is True:
+            state = check_box.Get3StateValue()
+
+            # handle NA and mustfill
+            if state == wx.CHK_UNDETERMINED:
+                # use back the model's NA indicator to avoid problems
+                self.value = self.na
+                if self.mustfill is True:
+                    highlight_error(
+                        check_box, "This field must be True or False",
+                        "Invalid Input")
+                    return False
+                else:
+                    highlight_off(check_box)
+            elif state == wx.CHK_CHECKED:
+                self.value = True
+            else:
+                # wx.CHK_UNCHECKED
+                self.value = False
+        else:
+            self.value = check_box.GetValue()
+
+        retval = True
+        if self._model_validate is True:
+            fldname = check_box.GetName()
+            # call the model's validate function
+            vres = self._model.validate(fldname, self.value)
+            if vres.result is None or vres.result is False:
+                highlight_error(check_box, vres.errormsg, vres.title)
+                retval = False
+            else:
+                highlight_off(check_box)
+                retval = True
+
+        return retval
+
         return True
 
     def TransferToWindow(self):
@@ -483,18 +522,7 @@ class BoolValidator(wx.Validator):
     def TransferFromWindow(self):
         check_box = self.GetWindow()  # correct protocol
         if self.Validate(check_box.GetParent()) is True:
-            if check_box.Is3State() is True:
-                if check_box.Get3StateValue() == wx.CHK_UNDETERMINED:
-                    # use back the model's NA indicator to avoid problems
-                    self._model.setvalue(check_box.GetName(), self.na)
-                elif check_box.Get3StateValue() == wx.CHK_CHECKED:
-                    self._model.setvalue(check_box.GetName(), True)
-                else:
-                    # wx.CHK_UNCHECKED
-                    self._model.setvalue(check_box.GetName(), False)
-            else:  # 2State check box
-                self._model.setvalue(check_box.GetName(),
-                                     check_box.GetValue())
+            self._model.setvalue(check_box.GetName(), self.value)
             return True
         else:
             return False
@@ -558,7 +586,7 @@ if __name__ == '__main__':
                 self, value='', size=(70, -1),
                 style=wx.TE_PROCESS_ENTER,  # get tab and CR
                 validator=DecimalValidator(
-                    self._model, (-1000, 1000), True),
+                    self._model, (-1000, 1000)),
                 name='decimal_value')
             # bool validator test
             st_status = wx.StaticText(self, label="Boolean Status:")
@@ -570,8 +598,10 @@ if __name__ == '__main__':
                 name='status1')
             cb_status2 = wx.CheckBox(
                 self, label='2',
+                style=wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER,
                 validator=BoolValidator(
-                    self._model),
+                    self._model,
+                    fill=False),
                 name='status2')
             cb_status3 = wx.CheckBox(
                 self, label='3',
