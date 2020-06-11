@@ -128,7 +128,7 @@ class GenericValidator(wx.Validator):
         self.dtype_code = self.ValDtype.STRING  # default for GenericValidator
 
         self.value = None
-        self.na = None  # NA indicator used by model's data
+        self.na = None  # default NA indicator or by model's NA indicator
         # Events sent to txtctrl processed by this validator
         self.Bind(wx.EVT_CHAR, self.on_char)
 
@@ -400,6 +400,106 @@ class DecimalValidator(GenericValidator):
         return super().Clone()
 
 
+class BoolValidator(wx.Validator):
+    """ This is BoolValidator for a wx.CheckBox
+
+        Requirements
+        ------------
+        1. Set style=wx.wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER
+        2. wx.CheckBox must have the name=field_name of data,
+            e.g. name='status'.
+           The field name must be present in the App's model data.
+           This field name is used by the Validator to access the App's
+           model data.
+        3. The App's model must implement getvalue and setvalue methods.
+           They use the field names to set and get data from the model.
+           The model can validate it's own field by implementing
+           validate_field_name method and setting the mdlvalidate parameter
+           to True. E.g. validate_price('status', new_value) method in
+           the model will validate the status field. The Validator will
+           call the method based on the field name.
+
+        Changing the Validator's attributes
+        -----------------------------------
+        Because of cloning the, validator's attributes can only be
+        changed through CheckBox.GetValidator().
+        For example CheckBox.GetValidator().mustfill = False
+    """
+
+    def __init__(self, mdl, limit=None, mdlvalidate=False, fill=True):
+        """ Constructor for BoolValidator
+            This is a validator for a wx.CheckBox.
+        """
+        super().__init__()
+
+        self._model = mdl
+        self.limit = None
+        self._model_validate = mdlvalidate
+        self.mustfill = fill
+        # self.dtype and self.dtype_code not required
+        self.value = None
+        self.na = None  # default NA indicator or by model's NA indicator
+
+    # MUST implement Clone()
+
+    def Clone(self):
+        return self.__class__(self._model, self.limit, self._model_validate,
+                              self.mustfill)
+
+    def Validate(self, parent):
+        return True
+
+    def TransferToWindow(self):
+        check_box = self.GetWindow()  # correct protocol
+        # init original value in case of cancel or mustfill = False
+        self.value = self._model.getvalue(check_box.GetName())
+        if check_box.Is3State() is True:
+            if self.value is None:  # NA indicator is None
+                val = wx.CHK_UNDETERMINED
+                self.na = self.value  # store the model's data NA indicator
+            elif isinstance(self.value, float) and math.isnan(self.value):
+                val = wx.CHK_UNDETERMINED  # NA indicator is math.nan
+                self.na = self.value
+            else:
+                val = bool(self.value)
+                if self.value is True:
+                    val = wx.CHK_CHECKED
+                else:
+                    val = wx.CHK_UNCHECKED
+            check_box.Set3StateValue(val)
+        else:  # 2State checkbox
+            if self.value is None:  # NA indicator is None
+                val = False  # interpret NA as False
+                self.na = self.value  # store the model's data NA indicator
+            elif isinstance(self.value, float) and math.isnan(self.value):
+                # NA indicator is math.nan
+                val = False  # interpret NA as False
+                self.na = self.value
+            else:
+                val = bool(self.value)
+            check_box.SetValue(val)
+        return True
+
+    def TransferFromWindow(self):
+        check_box = self.GetWindow()  # correct protocol
+        if self.Validate(check_box.GetParent()) is True:
+            if check_box.Is3State() is True:
+                if check_box.Get3StateValue() == wx.CHK_UNDETERMINED:
+                    # use back the model's NA indicator to avoid problems
+                    self._model.setvalue(check_box.GetName(), self.na)
+                elif check_box.Get3StateValue() == wx.CHK_CHECKED:
+                    self._model.setvalue(check_box.GetName(), True)
+                else:
+                    # wx.CHK_UNCHECKED
+                    self._model.setvalue(check_box.GetName(), False)
+            else:  # 2State check box
+                self._model.setvalue(check_box.GetName(),
+                                     check_box.GetValue())
+            return True
+        else:
+            return False
+
+
 if __name__ == '__main__':
 
     class CheckValidatorsDialog(wx.Dialog):
@@ -424,7 +524,7 @@ if __name__ == '__main__':
             # floating point tests
             st_fv = wx.StaticText(self, label="Float value:")
             tc_float_data = wx.TextCtrl(
-                self, value='', size=(100, -1),
+                self, value='', size=(70, -1),
                 style=wx.TE_PROCESS_ENTER,  # get tab and CR
                 validator=FloatingPointValidator(
                     self._model, (-50.0, 150.0)),
@@ -433,7 +533,7 @@ if __name__ == '__main__':
             # integer data tests
             st_iv = wx.StaticText(self, label="Integer value:")
             tc_int_data = wx.TextCtrl(
-                self, value='', size=(100, -1),
+                self, value='', size=(70, -1),
                 style=wx.TE_PROCESS_ENTER,  # get tab and CR
                 validator=IntegerValidator(self._model, (-100, 100)),
                 name='int_value')
@@ -447,7 +547,7 @@ if __name__ == '__main__':
             # model validator test
             st_constraint = wx.StaticText(self, label="Constrained value:")
             tc_constraint = wx.TextCtrl(
-                self, value='', size=(100, -1),
+                self, value='', size=(70, -1),
                 style=wx.TE_PROCESS_ENTER,  # get tab and CR
                 validator=FloatingPointValidator(
                     self._model, None, True),
@@ -455,13 +555,35 @@ if __name__ == '__main__':
             # decimal validator test
             st_decimal_value = wx.StaticText(self, label="Decimal value:")
             tc_decimal_value = wx.TextCtrl(
-                self, value='', size=(100, -1),
+                self, value='', size=(70, -1),
                 style=wx.TE_PROCESS_ENTER,  # get tab and CR
                 validator=DecimalValidator(
                     self._model, (-1000, 1000), True),
                 name='decimal_value')
+            # bool validator test
+            st_status = wx.StaticText(self, label="Boolean Status:")
+            cb_status1 = wx.CheckBox(
+                self, label='1',
+                style=wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER,
+                validator=BoolValidator(
+                    self._model),
+                name='status1')
+            cb_status2 = wx.CheckBox(
+                self, label='2',
+                validator=BoolValidator(
+                    self._model),
+                name='status2')
+            cb_status3 = wx.CheckBox(
+                self, label='3',
+                validator=BoolValidator(
+                    self._model),
+                name='status3')
+            hbs = wx.BoxSizer(wx.HORIZONTAL)
+            hbs.Add(cb_status1, 0, wx.ALL, 5)
+            hbs.Add(cb_status2, 0, wx.ALL, 5)
+            hbs.Add(cb_status3, 0, wx.ALL, 5)
 
-            fgs = wx.FlexGridSizer(5, 3, 5, 5)
+            fgs = wx.FlexGridSizer(6, 3, 5, 5)
             # floating point validation test
             fgs.Add(st_fv, 0, wx.ALIGN_RIGHT)
             fgs.Add(tc_float_data, 0, wx.EXPAND)
@@ -485,7 +607,12 @@ if __name__ == '__main__':
             # Decimal validation test
             fgs.Add(st_decimal_value, 0, wx.ALIGN_RIGHT)
             fgs.Add(tc_decimal_value, 0, wx.EXPAND)
-            fgs.Add(wx.StaticText(self, label="limits (-1000, 1000"),
+            fgs.Add(wx.StaticText(self, label="limits (-1000, 1000)"),
+                    0, wx.EXPAND)
+            # bool validation test
+            fgs.Add(st_status, 0, wx.ALIGN_RIGHT)
+            fgs.Add(hbs, 0, wx.EXPAND)
+            fgs.Add(wx.StaticText(self, label="Either True or False"),
                     0, wx.EXPAND)
 
             # Use standard button IDs for validators to work correctly
@@ -539,7 +666,8 @@ if __name__ == '__main__':
         app = wx.App(False)
         mydict = {"float_value": math.nan, "int_value": None,
                   "text_value": '', "constrained_value": None,
-                  "decimal_value": Decimal('1')}
+                  "decimal_value": Decimal('1'),
+                  "status1": None, "status2": None, "status3": None}
         # create the App's model
         mymodel = AppModel(mydict)
 
