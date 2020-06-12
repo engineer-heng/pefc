@@ -7,7 +7,7 @@ import math
 import wx
 from pefc.genericmodels import DictModel
 from pefc.validators import (TextValidator, FloatingPointValidator,
-                             IntegerValidator, BoolValidator)
+                             IntegerValidator, BooleanValidator)
 
 
 class DemoModel(DictModel):
@@ -187,7 +187,7 @@ class DemoView(wx.Panel):
             self,
             label="Want special edition option?",
             style=wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER,
-            validator=BoolValidator(self._model),
+            validator=BooleanValidator(self._model),
             name='option')
         gbs.Add(self.chb_option, pos=(ipo, 0), span=(1, 2),
                 flag=wx.BOTTOM, border=5)

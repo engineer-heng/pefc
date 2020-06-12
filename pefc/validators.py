@@ -400,8 +400,8 @@ class DecimalValidator(GenericValidator):
         return super().Clone()
 
 
-class BoolValidator(wx.Validator):
-    """ This is BoolValidator for a wx.CheckBox. It can handle both the
+class BooleanValidator(wx.Validator):
+    """ This is BooleanValidator for a wx.CheckBox. It can handle both the
         default 2 state check box and 3 state check box.
         The following style can be used for a 3 state check box.
             style=wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER
@@ -424,7 +424,7 @@ class BoolValidator(wx.Validator):
     """
 
     def __init__(self, mdl, mdlvalidate=False, fill=True):
-        """ Constructor for BoolValidator
+        """ Constructor for BooleanValidator
             This is a validator for a wx.CheckBox.
 
             Parameters
@@ -600,19 +600,19 @@ if __name__ == '__main__':
             cb_status1 = wx.CheckBox(
                 self, label='1',
                 style=wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER,
-                validator=BoolValidator(
+                validator=BooleanValidator(
                     self._model),
                 name='status1')
             cb_status2 = wx.CheckBox(
                 self, label='2',
                 style=wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER,
-                validator=BoolValidator(
+                validator=BooleanValidator(
                     self._model,
                     fill=False),
                 name='status2')
             cb_status3 = wx.CheckBox(
                 self, label='3',
-                validator=BoolValidator(
+                validator=BooleanValidator(
                     self._model),
                 name='status3')
             hbs = wx.BoxSizer(wx.HORIZONTAL)
