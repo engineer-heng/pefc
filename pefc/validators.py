@@ -423,9 +423,18 @@ class BoolValidator(wx.Validator):
 
     """
 
-    def __init__(self, mdl, limit=None, mdlvalidate=False, fill=True):
+    def __init__(self, mdl, mdlvalidate=False, fill=True):
         """ Constructor for BoolValidator
             This is a validator for a wx.CheckBox.
+
+            Parameters
+            ----------
+            mdl: Model's data.
+
+            mdlvalidate: bool, default is False. If True, the Validate()
+            method will call the model's validate_field_name() to validate
+            the field_name's value. Make sure that the model implement
+            the validate_field_name method.
 
             fill: bool, Only valid for 3 State CheckBox.
                 default is True which means the state must be True or False.
@@ -433,7 +442,6 @@ class BoolValidator(wx.Validator):
         super().__init__()
 
         self._model = mdl
-        self.limit = None
         self._model_validate = mdlvalidate
         self.mustfill = fill
         # self.dtype and self.dtype_code not required
@@ -443,8 +451,7 @@ class BoolValidator(wx.Validator):
     # MUST implement Clone()
 
     def Clone(self):
-        return self.__class__(self._model, self.limit, self._model_validate,
-                              self.mustfill)
+        return self.__class__(self._model, self._model_validate, self.mustfill)
 
     def Validate(self, parent):
         # correct protocol to get the validator's associated control.
