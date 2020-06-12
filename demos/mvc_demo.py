@@ -7,7 +7,7 @@ import math
 import wx
 from pefc.genericmodels import DictModel
 from pefc.validators import (TextValidator, FloatingPointValidator,
-                             IntegerValidator)
+                             IntegerValidator, BoolValidator)
 
 
 class DemoModel(DictModel):
@@ -177,8 +177,7 @@ class DemoView(wx.Panel):
             size=(120, -1), choices=self.answer_ls,
             style=wx.TE_PROCESS_ENTER | wx.CB_DROPDOWN,  # get tab and CR
             validator=self._controller.get_text_validator(),
-            name='test_survey'
-        )
+            name='test_survey')
         gbs.Add(self.cb_survey, pos=(ipo, 1))
         self.Bind(wx.EVT_COMBOBOX, self.evt_combo_box, self.cb_survey)
         self.Bind(wx.EVT_TEXT, self.evt_text, self.cb_survey)
@@ -186,7 +185,10 @@ class DemoView(wx.Panel):
         # Checkbox
         self.chb_option = wx.CheckBox(
             self,
-            label="Want special edition option?")
+            label="Want special edition option?",
+            style=wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER,
+            validator=BoolValidator(self._model),
+            name='option')
         gbs.Add(self.chb_option, pos=(ipo, 0), span=(1, 2),
                 flag=wx.BOTTOM, border=5)
         self.Bind(wx.EVT_CHECKBOX, self.evt_check_box, self.chb_option)
@@ -202,8 +204,7 @@ class DemoView(wx.Panel):
             self,
             style=wx.TE_READONLY | wx.TE_CENTER,
             validator=self._controller.get_msg_validator(),
-            name='text_message'
-        )
+            name='text_message')
         font = wx.Font(wx.FontInfo(16).Bold())
         self.tc_text_msg.SetFont(font)
         gbs.Add(
@@ -451,7 +452,7 @@ if __name__ == '__main__':
                       'float_data': math.nan,
                       'int_data': 15,
                       'test_survey': None,
-                      'option': False,
+                      'option': None,
                       'text_message': None,  # need sync with rb
                       'unit_price': 8.00,
                       'quantity': math.nan,

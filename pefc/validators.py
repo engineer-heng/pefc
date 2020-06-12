@@ -23,16 +23,16 @@ import wx
 from pefc.genericmodels import DictModel, ValidationResult
 
 
-def highlight_error(ctrl, errormsg, mbtitle):
-    ctrl.SetBackgroundColour("pink")
+def highlight_error(ctrl, errormsg, mbtitle, clr="pink"):
+    ctrl.SetBackgroundColour(clr)
     ctrl.SetFocus()
     ctrl.Refresh()
     wx.MessageBox(errormsg, mbtitle, wx.OK | wx.ICON_ERROR)
 
 
-def highlight_off(ctrl):
+def highlight_off(ctrl, clr=wx.SYS_COLOUR_WINDOW):
     ctrl.SetBackgroundColour(
-        wx.SystemSettings.GetColour(wx.SYS_COLOUR_WINDOW))
+        wx.SystemSettings.GetColour(clr))
     ctrl.Refresh()
 
 
@@ -404,7 +404,7 @@ class BoolValidator(wx.Validator):
     """ This is BoolValidator for a wx.CheckBox. It can handle both the
         default 2 state check box and 3 state check box.
         The following style can be used for a 3 state check box.
-            style=wx.wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER
+            style=wx.CHK_3STATE | wx.CHK_ALLOW_3RD_STATE_FOR_USER
 
         Requirements
         ------------
@@ -469,13 +469,13 @@ class BoolValidator(wx.Validator):
                         check_box, "This field must be True or False",
                         "Invalid Input")
                     return False
-                else:
-                    highlight_off(check_box)
             elif state == wx.CHK_CHECKED:
                 self.value = True
             else:
                 # wx.CHK_UNCHECKED
                 self.value = False
+            highlight_off(check_box, wx.SYS_COLOUR_MENU)
+
         else:
             self.value = check_box.GetValue()
 
