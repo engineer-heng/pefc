@@ -213,6 +213,13 @@ class DictModel:
         # Call the method as we return it
         return vfunc(field_name, new_value)
 
+    @property
+    def model_dict(self):
+        """ Return the model's dictionary for further processing
+            by pandas.
+        """
+        return self._mdl_dc
+
     def model_report(self):
         """ Returns the model's data fields and listeners in str report
             format for debugging purposes.
