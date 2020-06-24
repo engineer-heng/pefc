@@ -220,7 +220,7 @@ class DemoView(wx.Panel):
         # unit price
         st_upr = wx.StaticText(self, label="Unit price: ")
         self.tc_unit_price = wx.TextCtrl(self, style=wx.TE_READONLY,
-                                         size=(100, -1), name='unit_price')
+                                         size=(75, -1), name='unit_price')
         # no validator so use model to init unit_price. unit_price not editable
         self._model.register('unit_price', self.tc_unit_price)
 
@@ -229,7 +229,7 @@ class DemoView(wx.Panel):
         # quantity
         st_qty = wx.StaticText(self, label="Quantity: ")
         self.spcl_qty = wx.SpinCtrl(
-            self, size=(75, -1),
+            self, size=(50, -1),
             style=wx.TE_PROCESS_ENTER,
             name='quantity')
         self.Bind(wx.EVT_SPINCTRL, self.spcl_qty_updated, self.spcl_qty)
@@ -238,7 +238,7 @@ class DemoView(wx.Panel):
         st_tpr = wx.StaticText(self, label="Total price: ")
         self.tc_total_price = wx.TextCtrl(self,
                                           style=wx.TE_READONLY,
-                                          size=(100, -1), name='total_price')
+                                          size=(75, -1), name='total_price')
         # Register and init values from Model
         # Must register in order of ctrl creation
         # total_price is sync with quantity during registration
@@ -252,6 +252,26 @@ class DemoView(wx.Panel):
                      ])
         # add as part of gb
         gbs.Add(fgs, pos=(ipo, 0))
+
+        # ListCtrl
+        self.list_ctrl = wx.ListCtrl(
+            self, size=(-1, 100),
+            style=wx.LC_REPORT | wx.LC_HRULES
+        )
+        self.list_ctrl.InsertColumn(0, 'Stock No', width=70)
+        self.list_ctrl.InsertColumn(1, 'List Price', width=70)
+        self.list_ctrl.InsertColumn(2, 'Stock Qty', width=70)
+
+        items = self._model.getvalue('price_list').items()
+        idx = 0
+        for key, data in items:
+            index = self.list_ctrl.InsertItem(idx, data[0])
+            self.list_ctrl.SetItem(index, 1, data[1])
+            self.list_ctrl.SetItem(index, 2, data[2])
+            self.list_ctrl.SetItemData(index, key)
+            idx += 1
+        # add as part of gb
+        gbs.Add(self.list_ctrl, pos=(ipo, 1))
 
         # A multiline TextCtrl demo to display model data and other info
         self.tc_display = wx.TextCtrl(
@@ -456,7 +476,11 @@ if __name__ == '__main__':
                       'text_message': None,  # need sync with rb
                       'unit_price': 8.00,
                       'quantity': math.nan,
-                      'total_price': math.nan
+                      'total_price': math.nan,
+                      'price_list': {0: ('ZS001', '8.00', '100'),
+                                     1: ('ZS002', '10.50', '150'),
+                                     2: ('ZS003', '12.50', '50')
+                                     }
                       }
         # Init the Model which in a real app has databases and biz logic in it.
         model = DemoModel(model_dict)
