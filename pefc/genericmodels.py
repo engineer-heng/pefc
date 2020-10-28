@@ -105,7 +105,7 @@ class DictModel:
         try:
             value = self._mdl_dc[field_name]
         except KeyError:  # print message and continue
-            print(f"Model get_value KeyError: '{field_name}' does not exist")
+            print(f"Model getvalue KeyError: '{field_name}' does not exist")
             value = None
         else:
             if default is not None:
@@ -151,7 +151,7 @@ class DictModel:
         if field_name in self._mdl_dc.keys():
             self._mdl_dc[field_name] = new_value
         else:
-            print(f"Model set_value KeyError: '{field_name}' does not exist")
+            print(f"Model setvalue KeyError: '{field_name}' does not exist")
         self._notify_listeners(field_name)
 
     def _notify_listeners(self, field_name):
