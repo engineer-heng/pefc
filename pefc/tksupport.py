@@ -81,7 +81,9 @@ class FuncLauncherApp(tk.Frame):
 
     def btn_clear_results(self, event=None):
         self.text.config(state=tk.NORMAL)
-        self.text.delete(0.0, tk.END)
+        # first index "1.0" -> "<line>.<char>" means line 1 at char 0
+        # line start from 1, char start from 0
+        self.text.delete("1.0", tk.END)
         self.text.config(state=tk.DISABLED)
 
     def save_old_terminal(self):
