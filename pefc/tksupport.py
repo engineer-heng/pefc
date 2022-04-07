@@ -4,18 +4,25 @@ from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 
 
-class FuncLauncherApp(tk.Frame):
+class FuncLauncher(tk.Frame):
     """ Function launcher to debug programs. Avoid using this for python
         exercises because many on-line interpreters don't support tkinter
         module.
     """
 
-    def __init__(self, mainui, func_list=None):
-        super().__init__(mainui)
+    def __init__(self, parent, button_dict=None):
+        """ Constructor for the FuncLauncher which is a tkinter.Frame.
 
+            parent: tkinter.Frame, parent Frame or main Frame of
+            the application.
+
+            dict_list: dict. The format is as follows:
+            { button_name1: func_to_call1, button_name2: func_to_call2 ...}
+        """
+        super().__init__(parent)
         self.master.title("Function Launcher")
         self.master.resizable(True, False)
-        self.func_list = func_list
+        self.button_dc = button_dict
 
         self.master.protocol('WM_DELETE_WINDOW', self.btn_cancel)
         self.master.bind('<Return>', self.btn_cancel)  # instead of btn_ok
@@ -31,13 +38,13 @@ class FuncLauncherApp(tk.Frame):
         self.master.config(menu=tk.Menu(self.master))
         top_frame = ttk.Frame(self)
         top_frame.pack(side=tk.TOP)
-        if func_list:
+        if self.button_dc:
             button_list_frame = ttk.LabelFrame(top_frame,
                                                text="Functions to launch")
             button_list_frame.pack(padx=15, pady=(0, 20), side=tk.LEFT,
                                    fill=tk.BOTH)
-            for func in func_list:
-                ttk.Button(button_list_frame, text=func.__name__,
+            for btn_name, func in self.button_dc.items():
+                ttk.Button(button_list_frame, text=btn_name,
                            command=decorator_function(func)).pack(
                                padx=2, pady=2, fill=tk.X)
         # results display
@@ -125,7 +132,7 @@ def func_test():
 
 if __name__ == '__main__':
     root = tk.Tk()
-    # function list
-    func_list = [func_test]
-    app = FuncLauncherApp(root, func_list)
+    # dict of button name and function to call
+    button_dict = {"Function Test": func_test}
+    app = FuncLauncher(root, button_dict)
     app.mainloop()
