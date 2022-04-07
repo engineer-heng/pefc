@@ -21,7 +21,7 @@ class FuncLauncher(tk.Frame):
         """
         super().__init__(parent)
         self.master.title("Function Launcher")
-        self.master.resizable(True, False)
+        self.master.resizable(False, False)
         self.button_dc = button_dict
 
         self.master.protocol('WM_DELETE_WINDOW', self.btn_cancel)
@@ -59,14 +59,15 @@ class FuncLauncher(tk.Frame):
         button_frame.pack(padx=15, pady=(0, 15), side=tk.BOTTOM)
 
         ttk.Button(button_frame, text="Clear Results",
-                   command=self.btn_clear_results).pack(side=tk.LEFT)
+                   command=self.btn_clear_results).pack(padx=3, side=tk.LEFT)
         ttk.Button(button_frame, text="Results to Terminal",
-                   command=self.btn_restore_terminal).pack(side=tk.LEFT)
+                   command=self.btn_restore_terminal).pack(padx=3,
+                                                           side=tk.LEFT)
         ttk.Button(button_frame, text='Cancel', default=tk.ACTIVE,
-                   command=self.btn_cancel).pack(side=tk.LEFT)
+                   command=self.btn_cancel).pack(padx=3, side=tk.LEFT)
         # repurpose btn_ok to run all functions
         ttk.Button(button_frame, text='Run All',
-                   command=self.btn_ok).pack(side=tk.LEFT)
+                   command=self.btn_ok).pack(padx=3, side=tk.LEFT)
 
         self.pack()
 
