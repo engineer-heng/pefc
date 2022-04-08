@@ -7,7 +7,7 @@ from tkinter.scrolledtext import ScrolledText
 class FuncLauncher(tk.Frame):
     """ Function launcher to debug programs. Avoid using this for python
         exercises because many on-line interpreters don't support tkinter
-        module.
+        module. This Function Launcher is a app not a dialog.
     """
 
     def __init__(self, parent, button_dict=None):
@@ -131,9 +131,177 @@ def func_test():
     print("Func Test ran")
 
 
+class SingleChoiceDialog(tk.Toplevel):
+    def __init__(self, parent=None, message='Select one of the following:',
+                 title='Single Choice Dialog',
+                 choice_list=['default list', 'put your own list here'],
+                 box_height=10, box_width=50):
+        """  Contructor for SingleChoiceDialog
+
+            parent: tkinter.Frame, parent Frame or main Frame of
+            the application.
+
+            message: str, message label to inform user to pick one
+            item on the list
+
+            title: str, dialog box's window title
+
+            choice_list: list, list of items to be picked.
+
+                items = ['Red', 'Blue', 'Yellow', 'Green'] or
+
+                items = [1, 2, 3] or
+
+                items = [(1, 'fish'), (2, 'boat'), (3, 'hut')]
+
+
+        """
+        super().__init__(parent)
+
+        self.title(title)
+        self.resizable(False, False)
+        # intercept close button
+        self.protocol('WM_DELETE_WINDOW', self.btn_cancel)
+        self.bind('<Return>', self.btn_ok)
+        self.bind('<Escape>', self.btn_cancel)
+
+        x = (self.winfo_screenwidth() -
+             self.winfo_reqwidth()) // 2
+        y = (self.winfo_screenheight() -
+             self.winfo_reqheight()) // 3
+        self.geometry(f"+{x}+{y}")
+
+        dialog_frame = ttk.Frame(self)
+        dialog_frame.pack(padx=20, pady=5)
+        ttk.Label(dialog_frame, text=message).pack()
+
+        # list box
+        lstbox_frame = ttk.Frame(self)
+        lstbox_frame.pack()
+        scrollbar = ttk.Scrollbar(lstbox_frame)
+        scrollbar.pack(padx=(0, 15), side=tk.RIGHT, fill=tk.BOTH)
+        lst_len = len(choice_list)
+        if lst_len > box_height:
+            lbox_height = box_height
+        elif lst_len < 3:
+            lbox_height = 3  # improve the matching scrollbar to list box
+        else:
+            lbox_height = lst_len
+        list_items = tk.StringVar(value=choice_list)
+        self.listbox = tk.Listbox(lstbox_frame, height=lbox_height,
+                                  width=box_width, listvariable=list_items)
+
+        self.listbox.pack(padx=(15, 0))
+        self.listbox.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=self.listbox.yview)
+        self.listbox.selection_set(0)
+        self.listbox.focus_set()
+
+        # Binding double click with left mouse
+        # button with go function
+        self.listbox.bind('<Double-1>', self.go)
+
+        ttk.Separator(self, orient=tk.HORIZONTAL).pack(
+            padx=15, pady=10, fill=tk.X)
+
+        button_frame = ttk.Frame(self)
+        button_frame.pack(padx=15, anchor='e')
+
+        ttk.Button(button_frame, text='OK', default=tk.ACTIVE,
+                   command=self.btn_ok).pack(side=tk.RIGHT)
+
+        ttk.Button(button_frame, text='Cancel',
+                   command=self.btn_cancel).pack(padx=3, side=tk.RIGHT)
+
+        # init
+        self.selected = None
+
+        self.transient(root)   # dialog window is related to main
+        self.wait_visibility()  # can't grab until window appears, so we wait
+        self.grab_set()        # ensure all input goes to our window
+
+    def btn_ok(self, event=None):
+        cs = self.listbox.curselection()
+        self.selected = self.listbox.get(cs)
+        self.dismiss()
+
+    def btn_cancel(self, event=None):
+        self.selected = None
+        self.dismiss()
+
+    def go(self, event=None):  # handle double click
+        cs = self.listbox.curselection()
+        self.selected = self.listbox.get(cs)
+        self.dismiss()
+
+    def show(self):
+        self.wait_window()  # block until window  is destroyed
+        return self.selected
+
+    def dismiss(self):
+        self.grab_release()
+        self.destroy()
+
+
+def ask_singlechoicedialog_item(
+        parent=None, message='Select one of the following:',
+        title='Single Choice Dialog',
+        choice_list=['default list', 'put your own list here'],
+        box_height=10, box_width=50):
+    """ Returns a single item selected from the choice list.
+
+        parent: tkinter.Frame, parent Frame or main Frame of
+        the application.
+
+        message: str, message label to inform user to pick one
+        item on the list
+
+        title: str, dialog box's window title
+
+        choice_list: list, list of items to be picked e.g. ['right', 'left']
+
+        height: int, List box height. Default is 10 text characters high.
+
+        width: int, List box weight. Default is 50 text characters long.
+
+        Usage
+        -----
+        >>> items = ['Red', 'Blue', 'Yellow', 'Green']
+        >>> item = ask_singlechoicedialog_item(root, choice_list=items)
+        >>> print(f"Item chosen is {item} and type is {type(item)}")
+        >>> Item chosen is Blue and type is <class 'str'>
+        >>>
+        >>> items = [1, 2, 3, 4, 5]
+        >>> item = ask_singlechoicedialog_item(root, choice_list=items)
+        >>> print(f"Item chosen is {item} and type is {type(item)}")
+        >>> Item chosen is 3 and type is <class 'int'>
+        >>>
+        >>> items = [(1, 'fish'), (2, 'boat'), (3, 'hut')]
+        >>> item = ask_singlechoicedialog_item(root, choice_list=items)
+        >>> print(f"Item chosen is {item} and type is {type(item)}")
+        >>> Item chosen is (1, 'fish') and type is <class 'tuple'>
+
+
+    """
+    dlg_result = SingleChoiceDialog(parent, message, title, choice_list,
+                                    box_height, box_width).show()
+    return dlg_result
+
+
+def singlechoicedialog_test():
+    items = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+             'nine', 'ten', 'eleven', 'twelve']
+    # items = ['Red', 'Blue']
+    # items = [1, 2, 3, 4, 5]
+    # items = [(1, 'fish'), (2, 'boat'), (3, 'hut')]
+    item = ask_singlechoicedialog_item(choice_list=items, box_height=8)
+    print(f"Item chosen is {item} and type is {type(item)}")
+
+
 if __name__ == '__main__':
     root = tk.Tk()
     # dict of button name and function to call
-    button_dict = {"Function Test": func_test}
+    button_dict = {"Function Test": func_test,
+                   "Single Choice Dialog Test": singlechoicedialog_test}
     app = FuncLauncher(root, button_dict)
     app.mainloop()
