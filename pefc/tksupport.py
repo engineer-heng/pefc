@@ -78,7 +78,7 @@ class FuncLauncher(tk.Frame):
 
     def btn_ok(self, event=None):
         print("*** Test all functions ***")
-        for func in self.func_list:
+        for func in self.button_dc.values():
             decorator_function(func)()
 
     def btn_cancel(self, event=None):
