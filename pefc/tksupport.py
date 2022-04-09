@@ -194,8 +194,8 @@ class SingleChoiceDialog(tk.Toplevel):
         self.listbox.pack(padx=(15, 0))
         self.listbox.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.listbox.yview)
-        self.listbox.selection_set(0)
-        self.listbox.focus_set()
+        self.listbox.selection_set(0)  # set selection at 0 index by default
+        self.listbox.focus_set()  # put focus on list box
 
         # Binding double click with left mouse
         # button with go function
@@ -216,7 +216,7 @@ class SingleChoiceDialog(tk.Toplevel):
         # init
         self.selected = None
 
-        self.transient(root)   # dialog window is related to main
+        self.transient(parent)   # dialog window is related to main
         self.wait_visibility()  # can't grab until window appears, so we wait
         self.grab_set()        # ensure all input goes to our window
 
@@ -291,10 +291,8 @@ def ask_singlechoicedialog_item(
 def singlechoicedialog_test():
     items = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
              'nine', 'ten', 'eleven', 'twelve']
-    # items = ['Red', 'Blue']
-    # items = [1, 2, 3, 4, 5]
-    # items = [(1, 'fish'), (2, 'boat'), (3, 'hut')]
-    item = ask_singlechoicedialog_item(choice_list=items, box_height=8)
+    # root is from the caller's mainloop
+    item = ask_singlechoicedialog_item(root, choice_list=items, box_height=8)
     print(f"Item chosen is {item} and type is {type(item)}")
 
 
