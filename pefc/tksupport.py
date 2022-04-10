@@ -2,6 +2,7 @@ import sys
 import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
+from tkinter.messagebox import showinfo
 
 
 class FuncLauncher(tk.Frame):
@@ -22,7 +23,6 @@ class FuncLauncher(tk.Frame):
         super().__init__(parent)
         self.master.title("Function Launcher")
         self.master.resizable(False, False)
-        self.button_dc = button_dict
 
         self.master.protocol('WM_DELETE_WINDOW', self.btn_cancel)
         self.master.bind('<Return>', self.btn_cancel)  # instead of btn_ok
@@ -35,7 +35,17 @@ class FuncLauncher(tk.Frame):
              self.master.winfo_reqheight()) // 2
         self.master.geometry(f"+{x}+{y}")
 
-        self.master.config(menu=tk.Menu(self.master))
+        # Launcher Menu Bar
+        launcher_menubar = tk.Menu(self.master)
+        # create the Help menu
+        help_menu = tk.Menu(launcher_menubar, tearoff=0)
+        help_menu.add_command(label='About', command=self.help_about)
+        # add the Help menu to the menubar
+        launcher_menubar.add_cascade(label="Help", menu=help_menu)
+
+        self.master.config(menu=launcher_menubar)
+        self.button_dc = button_dict
+
         top_frame = ttk.Frame(self)
         top_frame.pack(side=tk.TOP)
         if self.button_dc:
@@ -76,7 +86,12 @@ class FuncLauncher(tk.Frame):
         sys.stderr = TextRedirector(self.text, "stderr")
         sys.stdin = TextRedirector(self.text, "stdin")
 
-    def btn_ok(self, event=None):
+    def help_about(self):
+        msg = ('Function Launcher from\n' +
+               'Python Engineering Foundation Class (PEFC) 2022')
+        showinfo(title='Information', message=msg)
+
+    def btn_ok(self, event=None):  # repurpose btn_ok to run all functions
         print("*** Test all functions ***")
         for func in self.button_dc.values():
             decorator_function(func)()
@@ -187,7 +202,7 @@ class SingleChoiceDialog(tk.Toplevel):
             lbox_height = 3  # improve the matching scrollbar to list box
         else:
             lbox_height = lst_len
-        list_items = tk.StringVar(value=choice_list)
+        list_items = tk.StringVar(self, value=choice_list)
         self.listbox = tk.Listbox(lstbox_frame, height=lbox_height,
                                   width=box_width, listvariable=list_items)
 
