@@ -316,5 +316,5 @@ if __name__ == '__main__':
     # dict of button name and function to call
     button_dict = {"Function Test": func_test,
                    "Single Choice Dialog Test": singlechoicedialog_test}
-    FuncLauncher(root, button_dict)
+    FuncLauncher(root, button_dict)  # main frame
     root.mainloop()
