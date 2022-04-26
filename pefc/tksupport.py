@@ -11,7 +11,8 @@ class FuncLauncher(tk.Frame):
         module. This Function Launcher is a app not a dialog.
     """
 
-    def __init__(self, parent, button_dict=None):
+    def __init__(self, parent, button_dict=None,
+                 title="Function Launcher", about_msg=None):
         """ Constructor for the FuncLauncher which is a tkinter.Frame.
 
             parent: tkinter.Frame, parent Frame or main Frame of
@@ -21,7 +22,7 @@ class FuncLauncher(tk.Frame):
             { button_name1: func_to_call1, button_name2: func_to_call2 ...}
         """
         super().__init__(parent)
-        self.master.title("Function Launcher")
+        self.master.title(title)
         self.master.resizable(False, False)
 
         self.master.protocol('WM_DELETE_WINDOW', self.btn_cancel)
@@ -37,6 +38,12 @@ class FuncLauncher(tk.Frame):
 
         # Launcher Menu Bar
         launcher_menubar = tk.Menu(self.master)
+        if about_msg:
+            self.about_msg = about_msg
+        else:
+            self.about_msg = (
+                'Function Launcher from\n' +
+                'Python Engineering Foundation Class (PEFC) 2022')
         # create the Help menu
         help_menu = tk.Menu(launcher_menubar, tearoff=0)
         help_menu.add_command(label='About', command=self.help_about)
@@ -64,6 +71,11 @@ class FuncLauncher(tk.Frame):
         self.text.config(width=100, height=30)
         self.text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
+        # message bar
+        # self.msg = tk.StringVar(value="This is a test")
+        # self.tk_msg_label = ttk.Label(self, textvariable=self.msg)
+        # self.tk_msg_label.pack(side=tk.BOTTOM)
+
         # command buttons
         button_frame = ttk.Frame(self)
         button_frame.pack(padx=15, pady=(0, 15), side=tk.BOTTOM)
@@ -87,9 +99,7 @@ class FuncLauncher(tk.Frame):
         sys.stdin = TextRedirector(self.text, "stdin")
 
     def help_about(self):
-        msg = ('Function Launcher from\n' +
-               'Python Engineering Foundation Class (PEFC) 2022')
-        showinfo(title='Information', message=msg)
+        showinfo(title='About This App', message=self.about_msg)
 
     def btn_ok(self, event=None):  # repurpose btn_ok to run all functions
         print("*** Test all functions ***")
@@ -144,6 +154,7 @@ class TextRedirector(object):
 
 def func_test():
     print("Func Test ran")
+    # app.msg = "This is a great test"
 
 
 class SingleChoiceDialog(tk.Toplevel):
@@ -254,6 +265,7 @@ class SingleChoiceDialog(tk.Toplevel):
         return self.selected
 
     def dismiss(self):
+        self.listbox.config(takefocus=0)
         self.grab_release()
         self.destroy()
 
@@ -316,5 +328,5 @@ if __name__ == '__main__':
     # dict of button name and function to call
     button_dict = {"Function Test": func_test,
                    "Single Choice Dialog Test": singlechoicedialog_test}
-    FuncLauncher(root, button_dict)  # main frame
+    app = FuncLauncher(root, button_dict)  # main frame
     root.mainloop()
