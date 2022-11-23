@@ -50,7 +50,7 @@ class BusyInfo(tk.Toplevel):
         ------
         >>> import tkinter as tk
         >>> import time
-        >>> from pefc.tksupport import BusyInfo        
+        >>> from pefc.tksupport import BusyInfo
         >>> root = tk.Tk()
         >>> with BusyInfo():
         ...     time.sleep(5)
