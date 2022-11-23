@@ -3,6 +3,125 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 from tkinter.messagebox import showinfo
+import time
+
+
+def print_win_dims(parent):
+    """ Print tkinter window dimensions like screen, current window sizes,
+        window geometry, and requested window sizes for debugging purposes.
+    """
+    print(f"screen size  = {parent.winfo_screenwidth()} x",
+          f"{parent.winfo_screenheight()}")
+    print(f"req win size = {parent.winfo_reqwidth()} x",
+          f"{parent.winfo_reqheight()}")
+    print(f"win size     = {parent.winfo_width()} x",
+          f"{parent.winfo_height()}")
+    print(f"win geometry = {parent.winfo_geometry()}")
+
+
+def centered_window_offset(parent, win_width, win_height):
+    """ Return the centered screen offset (x, Y) coordinates
+
+        parent: root or a top level window object
+
+        win_width: int, width of window to center
+
+        win_height: int, height of window to center
+
+        Usage
+        -----
+        >>> win_width = 500
+        >>> win_height = 550
+        >>> x, y = centered_screen_offset(root, win_width, win_height)
+        >>> root.geometry(f"{win_width}x{win_height}+{x}+{y}")
+    """
+    screen_width = parent.winfo_screenwidth()
+    screen_height = parent.winfo_screenheight()
+    x = int(screen_width/2 - win_width/2)
+    y = int(screen_height/2 - win_height/2)
+    return x, y
+
+
+class BusyInfo(tk.Toplevel):
+    """ BusyInfo class is implemented to help inform the user that
+        the program is busy. It is a top level window without title bar.
+
+        Usage:
+        ------
+        >>> import tkinter as tk
+        >>> import time
+        >>> from pefc.tksupport import BusyInfo        
+        >>> root = tk.Tk()
+        >>> with BusyInfo():
+        ...     time.sleep(5)
+        >>> root.mainloop()
+
+    """
+
+    def __init__(self,  msg='Please wait, working...', parent=None,
+                 win_width=350, win_height=100):
+        """ Constructor for the BusyInfo which is a tk.Toplevel
+
+            parent: root of the application as in root = tk.Tk()
+
+        """
+        super().__init__(parent)
+        self.title("Busy Info Screen")  # title or debugging only
+        self.resizable(False, False)
+        bg_color = 'khaki1'
+        self.configure(bg=bg_color)
+
+        if not parent:
+            parent = self.master
+        x, y = centered_window_offset(parent, win_width, win_height)
+        self.geometry(f"{win_width}x{win_height}+{x}+{y}")
+        self.overrideredirect(1)  # hide windows title bar
+        self.attributes('-topmost', True)
+
+        # Change all window elements to light yellow background
+        style = ttk.Style()
+        style.configure("BI.TLabel", foreground="black", background=bg_color)
+        style.configure("BI.TFrame", foreground="black", background=bg_color)
+        main_frame = ttk.Frame(self, style="BI.TFrame")
+        # label
+        self.label = ttk.Label(main_frame, text=msg, font=("Helvetica", 12),
+                               style="BI.TLabel")
+        self.label.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
+        main_frame.pack(expand=True)
+
+        self.grab_set()  # makes this a modal window
+        self.update()  # without this it won't show window at all
+
+    # Context Manager implementations
+
+    def __enter__(self):
+        return self
+
+    # automatically close() when using 'with' statement
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    # For simplicity implement close() to explicitly close
+    # the windows
+    def close(self):
+        """
+        Explicitly close the window.
+        Use the 'with' statement instead to avoid forgeting to close it.
+        """
+        self.destroy()
+
+
+def busy_info_test():
+    with BusyInfo(
+        "For multiple lines statement, split using newline.\n"
+            "This is the second line.\nThis is the last line."):
+        time.sleep(5)
+        print('First test completed')
+
+    with BusyInfo(parent=root):
+        # do something here ...
+        time.sleep(5)
+        print('Second test completed')
 
 
 class FuncLauncher(tk.Frame):
@@ -29,12 +148,9 @@ class FuncLauncher(tk.Frame):
         self.master.bind('<Return>', self.btn_cancel)  # instead of btn_ok
         self.master.bind('<Escape>', self.btn_cancel)
 
-        # main screen position
-        x = (self.master.winfo_screenwidth() // 2 -
-             self.master.winfo_reqwidth()) // 2
-        y = (self.master.winfo_screenheight() // 2 -
-             self.master.winfo_reqheight()) // 2
-        self.master.geometry(f"+{x}+{y}")
+        # Main screen positioning calc don't work because winfo_reqwidth and
+        # winfo_width cannot return the final window size even at the end. Use
+        # self.master.eval('tk::PlaceWindow . center') at end instead.
 
         # Launcher Menu Bar
         launcher_menubar = tk.Menu(self.master)
@@ -92,6 +208,9 @@ class FuncLauncher(tk.Frame):
                    command=self.btn_ok).pack(padx=3, side=tk.LEFT)
 
         self.pack()
+
+        # This method works and must be at end of method after pack
+        self.master.eval('tk::PlaceWindow . center')  # run tcl/tk command
 
         self.save_old_terminal()
         sys.stdout = TextRedirector(self.text, "stdout")
@@ -327,6 +446,7 @@ if __name__ == '__main__':
     root = tk.Tk()
     # dict of button name and function to call
     button_dict = {"Function Test": func_test,
-                   "Single Choice Dialog Test": singlechoicedialog_test}
+                   "Single Choice Dialog Test": singlechoicedialog_test,
+                   "BusyInfo test": busy_info_test}
     app = FuncLauncher(root, button_dict)  # main frame
     root.mainloop()
