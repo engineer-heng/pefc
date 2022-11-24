@@ -59,20 +59,21 @@ class BusyInfo(tk.Toplevel):
     """
 
     def __init__(self,  msg='Please wait, working...', parent=None,
-                 win_width=350, win_height=100):
-        """ Constructor for the BusyInfo which is a tk.Toplevel
+                 win_width=350, win_height=100,
+                 bg_color='khaki1', fg_color='black'):
+        """ Constructor for the BusyInfo which is a tk.Toplevel window
 
             parent: root of the application as in root = tk.Tk()
 
         """
         super().__init__(parent)
-        self.title("Busy Info Screen")  # title or debugging only
+        self.title("Busy Info Screen")  # title for debugging only
         self.resizable(False, False)
-        bg_color = 'khaki1'
         self.configure(bg=bg_color)
 
         if not parent:
             parent = self.master
+
         x, y = centered_window_offset(parent, win_width, win_height)
         self.geometry(f"{win_width}x{win_height}+{x}+{y}")
         self.overrideredirect(1)  # hide windows title bar
@@ -80,8 +81,8 @@ class BusyInfo(tk.Toplevel):
 
         # Change all window elements to light yellow background
         style = ttk.Style()
-        style.configure("BI.TLabel", foreground="black", background=bg_color)
-        style.configure("BI.TFrame", foreground="black", background=bg_color)
+        style.configure("BI.TLabel", foreground=fg_color, background=bg_color)
+        style.configure("BI.TFrame", foreground=fg_color, background=bg_color)
         main_frame = ttk.Frame(self, style="BI.TFrame")
         # label
         self.label = ttk.Label(main_frame, text=msg, font=("Helvetica", 12),
@@ -115,10 +116,12 @@ def busy_info_test():
     with BusyInfo(
         "For multiple lines statement, split using newline.\n"
             "This is the second line.\nThis is the last line."):
+        # do something here ...
         time.sleep(5)
         print('First test completed')
 
-    with BusyInfo(parent=root):
+    with BusyInfo(parent=root, win_width=200, win_height=75,
+                  bg_color='pale green', fg_color='blue'):
         # do something here ...
         time.sleep(5)
         print('Second test completed')
