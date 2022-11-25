@@ -232,7 +232,6 @@ class FuncLauncher(tk.Frame):
         showinfo(title='About This App', message=self.about_msg)
 
     def set_info_txt(self, new_txt):
-        print("See Info bar below for changes")
         self.info_txt.set(new_txt)
 
     def btn_ok(self, event=None):  # repurpose btn_ok to run all functions
@@ -293,6 +292,7 @@ def func_test():
 
 def info_bar_test():
     app.set_info_txt("Status is updated!!")
+    print("See Info bar below for changes")
 
 
 class SingleChoiceDialog(tk.Toplevel):
