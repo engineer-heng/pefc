@@ -28,7 +28,7 @@ import openpyxl
 import openpyxl.utils.cell
 import xlrd
 import xlwings
-import win32com.client as win32
+# import win32com.client as win32
 
 
 # LIBRARY DESIGN DECISIONS
@@ -1007,110 +1007,3 @@ class XLWDataLink(PyXLDatalink):
             self._wbook.save(self._file_name)
         else:
             self._wbook.save(fname)
-
-
-def convert_xls(src: str, dest: str, xl_format=51, regex_str=".*\\.xls"):
-    """
-    Convert xls files in the source directory to the other excel
-    formats files into the destination directory.
-    Requires the MS Excel 2007 and above to be installed.
-    MS Excel 2003 must have the Compatibility Pack for the
-    2007 Office System installed for xl_format=51 only.
-    Other xl_format > 51 won't work for MS Excel 2003.
-    To avoid overriding the original files do not use the same
-    directory for both source and destination.
-
-    Helps to fix the issue with bad excel file format issue e.g.
-    xlrd.biffh.XLRDError: Unsupported format, or
-    corrupt file: Expected BOF record;
-    found b'\\xff\\xfe<\\x00!\\x00D\\x00'
-    or 'xlrd.biffh.XLRDError: Workbook is encrypted'
-    for MS Excel 95 protected file issue
-    MS Excel 2016 cannot handle legacy Excel 4 files, it is blocked by
-    the File Block settings in the Trust Center.
-    If just to fix MS Excel file format errors by third party apps,
-    use -4143(.xls) is ideal since it works for MS Excel 2003-2016.
-
-    When converting legacy xls files it is better to convert to
-    52(xlsm) format to handle file VBA macros correctly.
-    Use openpyxl or OXLDataLink to get data from the converted
-    MS Excel file
-
-    Parameters
-    ----------
-    src: str, Source directory e.g. C:/Worksheets.
-         Will not handle sub-directories
-    dest: str, Destination directory. C:/Worksheets/Fixed.
-          If directory does not exist it will create it
-    xl_format: int, Default is 51 for xlsx files.
-        Warning xlsx files have VBA/macros stripped. Use xlsm instead.
-        These are the main file formats in Excel 2007-2016,
-        Note: In Excel for the Mac the values are +1
-
-        -4143 = xlWorkbookNormal (Older Excel 97-2003, xls)
-
-        6 = xlCSV (csv text format, csv with data loss)
-
-        44 = xlHtml (HTML format, html)
-
-        50 = xlExcel12 (Excel Binary Workbook in 2007-2016 with
-             or without macro's, xlsb)
-
-        51 = xlOpenXMLWorkbook (without macro's in 2007-2016, xlsx)
-
-        52 = xlOpenXMLWorkbookMacroEnabled (with or without macro's
-             in 2007-2016, xlsm)
-
-        56 = xlExcel8 (97-2003 format in Excel 2007-2016, xls)
-
-        None = Defaults to 51, xlsx
-
-        Correct file extension is handled automatically by the function
-    regex_str: str, Default regular expression string is ".*\\.xls"
-    """
-
-    re_xls = re.compile(regex_str, re.IGNORECASE)
-    xlfnames = os.listdir(src)
-    xlfnames = [f for f in xlfnames if re.match(re_xls, f)]
-    # Assign file format extensions
-    ext_dict = {-4143: '.xls', 6: '.csv', 44: '.html', 50: '.xlsb',
-                51: '.xlsx', 52: '.xlsm', 56: '.xls'}
-    file_ext = ext_dict.get(xl_format)
-    if file_ext is None:
-        xl_format = 51
-        file_ext = '.xlsx'
-
-    try:
-
-        # xla = win32.gencache.EnsureDispatch('Excel.Application')
-        xla = win32.Dispatch('Excel.Application')
-
-        # directory checking and fixing
-        # no need to test src directory handled by Open.
-        # e.g. [WinError 3] The system cannot find the path specified
-        if not os.path.isdir(dest):
-            try:
-                os.makedirs(dest)
-            except OSError as err:
-                if err.errno != errno.EEXIST:
-                    raise
-
-        for xl_name in xlfnames:
-            # xl.DisplayAlerts = False not required since
-            # open don't display any alerts
-            wbk = xla.Workbooks.Open(os.path.join(src, xl_name))
-            fname = os.path.splitext(xl_name)[0]
-            fname = fname + file_ext
-
-            xla.DisplayAlerts = False  # required here to stop all alerts
-            xla.ActiveWorkbook.SaveAs(os.path.join(
-                dest, fname), FileFormat=xl_format)
-            # MS Excel 2003/2016 successfully saved in xlsx and
-            # solved bad format issue.
-            # xl.ActiveWorkbook.Save() cannot solve bad excel format issue
-
-            wbk.Close(True)
-        xla.Application.Quit()
-
-    except Exception as err:
-        print(err)
