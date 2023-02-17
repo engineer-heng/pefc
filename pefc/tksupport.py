@@ -113,9 +113,8 @@ class BusyInfo(tk.Toplevel):
 
 
 def busy_info_test():
-    with BusyInfo(
-        "For multiple lines statement, split using newline.\n"
-            "This is the second line.\nThis is the last line."):
+    with BusyInfo("For multiple lines statement, split using newline.\n"
+                  "This is the second line.\nThis is the last line."):
         # do something here ...
         time.sleep(5)
         print('First test completed')
@@ -240,6 +239,7 @@ class FuncLauncher(tk.Frame):
             decorator_function(func)()
 
     def btn_cancel(self, event=None):
+        self.restore_old_terminal()
         self.master.destroy()
 
     def btn_restore_terminal(self, event=None):
