@@ -1,6 +1,6 @@
 # Python Engineering Foundation Class Library (pefc)
 # xltab Library
-# Copyright(C) 2017 Heng Swee Ngee
+# Copyright(C) 2017-2023 Heng Swee Ngee
 #
 # Released under the MIT License - https://opensource.org/licenses/MIT
 #
@@ -20,10 +20,7 @@ data analysis.
 from abc import ABC, abstractmethod
 import copy
 import datetime
-import errno
 import math
-import os
-import re
 import openpyxl
 import openpyxl.utils.cell
 import xlrd

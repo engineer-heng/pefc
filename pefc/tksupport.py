@@ -64,6 +64,10 @@ class BusyInfo(tk.Toplevel):
         """ Constructor for the BusyInfo which is a tk.Toplevel window
 
             parent: root of the application as in root = tk.Tk()
+            win_width: int, width of displayed window
+            win_height: int, height of displayed window
+            bg_color: str, display window background color
+            fg_color: str, display window foreground color
 
         """
         super().__init__(parent)
@@ -76,17 +80,18 @@ class BusyInfo(tk.Toplevel):
 
         x, y = centered_window_offset(parent, win_width, win_height)
         self.geometry(f"{win_width}x{win_height}+{x}+{y}")
-        self.overrideredirect(1)  # hide windows title bar
+        self.update_idletasks()  # in order for overrideredirect to work
+        self.overrideredirect(True)  # hide windows title bar
         self.attributes('-topmost', True)
 
-        # Change all window elements to light yellow background
-        style = ttk.Style()
-        style.configure("BI.TLabel", foreground=fg_color, background=bg_color)
+        # Change all window elements to default light yellow background
+        style = ttk.Style(self)
         style.configure("BI.TFrame", foreground=fg_color, background=bg_color)
         main_frame = ttk.Frame(self, style="BI.TFrame")
         # label
-        self.label = ttk.Label(main_frame, text=msg, font=("Helvetica", 12),
-                               style="BI.TLabel")
+        # Avoid changing BI.TLabel fg and bg color so that it won't
+        # interfere with light and dark mode color scheme
+        self.label = ttk.Label(main_frame, text=msg, font=("Helvetica", 12))
         self.label.grid(column=0, row=1, sticky=tk.W, padx=5, pady=5)
         main_frame.pack(expand=True)
 
