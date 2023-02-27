@@ -1,5 +1,4 @@
 # general things to ignore
-# general things to ignore
 build/
 dist/
 *.egg-info/
@@ -8,9 +7,10 @@ dist/
 __pycache__/
 *~
 
-# due to using vscode, sublime text, pytest, tox
+# due to using vscode, sublime text, pytest, tox, Apple Mac OS
 .vscode
-pefc.sublime-project
-pefc.sublime-workspace
+*.sublime-project
+*.sublime-workspace
 .tox
 .cache
+.DS_Store
