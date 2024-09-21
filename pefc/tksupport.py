@@ -20,7 +20,7 @@ def print_win_dims(parent):
 
 
 def centered_window_offset(parent, win_width, win_height):
-    """ Return the centered screen offset (x, Y) coordinates
+    """ Return the centered screen offset (x, y) coordinates
 
         parent: root or a top level window object
 
@@ -72,6 +72,9 @@ class BusyInfo(tk.Toplevel):
         """
         super().__init__(parent)
         self.title("Busy Info Screen")  # title for debugging only
+        self.update_idletasks()  # in order for overrideredirect to work well
+        self.overrideredirect(True)  # hide windows title bar
+
         self.resizable(False, False)
         self.configure(bg=bg_color)
 
@@ -80,8 +83,6 @@ class BusyInfo(tk.Toplevel):
 
         x, y = centered_window_offset(parent, win_width, win_height)
         self.geometry(f"{win_width}x{win_height}+{x}+{y}")
-        self.update_idletasks()  # in order for overrideredirect to work
-        self.overrideredirect(True)  # hide windows title bar
         self.attributes('-topmost', True)
 
         # Change all window elements to default light yellow background
