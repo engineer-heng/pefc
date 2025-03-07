@@ -51,7 +51,7 @@ class DemoController:
         self._view = view
 
     def get_text_validator(self):
-        """ Controller returns the TexttValidator with text length limits
+        """ Controller returns the TextValidator with text length limits
             and pass its reponsibilities to the validator
         """
         # self._model may also supply the limits
@@ -309,11 +309,11 @@ class DemoView(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.on_info, bu_info)
         hbs2.Add(bus)
         hbs2.Add(10, -1, 0)  # add spacer in-between
-        hbs2.Add(bu_update)
+        hbs2.Add(bu_update, 0, wx.CENTER, 5)
         hbs2.Add(10, -1, 0)
-        hbs2.Add(bu_clr_display)
+        hbs2.Add(bu_clr_display, 0, wx.CENTER, 5)
         hbs2.Add(10, -1, 0)
-        hbs2.Add(bu_info)
+        hbs2.Add(bu_info, 0, wx.CENTER, 5)
 
         vbs_main = wx.BoxSizer(wx.VERTICAL)
         vbs_main.Add(hbs1, 0, wx.ALL, 5)  # grid bag and logger

@@ -37,7 +37,7 @@ def test_uchart():
 
 def test_xmrchart():
     # data preparation
-    xlfile = './tests/data/qctools_data.xlsx'
+    xlfile = '../tests/data/qctools_data.xlsx'
     xmr_data = pd.read_excel(xlfile, 'XmrData', header=None, skiprows=2)
     xs = xmr_data.iloc[:, [1, 3, 5, 7, 9]]
     observation = xmr_data.iloc[:, [0, 2, 4, 6, 8]]
