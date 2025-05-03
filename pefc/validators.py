@@ -535,6 +535,128 @@ class BooleanValidator(wx.Validator):
             return False
 
 
+class SelectionValidator(wx.Validator):
+    """ Validator for wx.Choice and wx.ComboBox controls.
+
+        This validator ensures that a selection has been made in a Choice
+        or ComboBox and manages the transfer of selection data between the
+        control and the model.
+
+        Requirements
+        ------------
+        1. The control must have the name=field_name of data,
+           e.g. name='category'
+           The field name must be present in the App's model data.
+        2. The App's model must implement getvalue and setvalue methods.
+           They use the field names to set and get data from the model.
+        3. The model can validate its own field by implementing
+           validate_field_name method and setting the mdlvalidate parameter
+           to True.
+
+        Parameters
+        ----------
+        mdl: Model's data.
+
+        mdlvalidate: bool, default is False. If True, the Validate()
+        method will call the model's validate_field_name() to validate
+        the field_name's value.
+
+        required: bool, default is True. If True, a selection must be made.
+
+        selection_type: type, default is int. Determines how the selection is
+        stored in the model (int for index-based, str for string value-based).
+    """
+
+    def __init__(self, mdl, mdlvalidate=False, required=True,
+                 selection_type=int):
+        super().__init__()
+        self._model = mdl
+        self._model_validate = mdlvalidate
+        self.required = required
+        self.selection_type = selection_type
+        self.value = None
+        self.na = None  # Default NA indicator or model's NA indicator
+
+    def Clone(self):
+        return self.__class__(self._model, self._model_validate,
+                              self.required, self.selection_type)
+
+    def Validate(self, parent):
+        ctrl = self.GetWindow()
+        selection = ctrl.GetSelection()
+
+        # Handle no selection case
+        if selection == wx.NOT_FOUND:
+            if self.required:
+                highlight_error(ctrl, "A selection is required",
+                                "Invalid Selection")
+                return False
+            else:
+                self.value = self.na
+                highlight_off(ctrl)
+                return True
+
+        # Store selection based on selection_type
+        if self.selection_type == int:
+            self.value = selection
+        elif self.selection_type == str:
+            self.value = ctrl.GetString(selection)
+        else:
+            # Custom handling for other types could be added here
+            self.value = selection
+
+        highlight_off(ctrl)
+
+        # Model validation if requested
+        if self._model_validate:
+            field_name = ctrl.GetName()
+            vres = self._model.validate(field_name, self.value)
+            if vres.result is None or vres.result is False:
+                highlight_error(ctrl, vres.errormsg, vres.title)
+                return False
+
+        return True
+
+    def TransferToWindow(self):
+        ctrl = self.GetWindow()
+        field_name = ctrl.GetName()
+
+        # Get the value from the model
+        self.value = self._model.getvalue(field_name)
+
+        # Handle NA indicators
+        if self.value is None:
+            self.na = self.value  # Store model's NA indicator
+            ctrl.SetSelection(wx.NOT_FOUND)
+            return True
+        elif isinstance(self.value, float) and math.isnan(self.value):
+            self.na = self.value
+            ctrl.SetSelection(wx.NOT_FOUND)
+            return True
+
+        # Set the selection based on the value type
+        if isinstance(self.value, int) and 0 <= self.value < ctrl.GetCount():
+            ctrl.SetSelection(self.value)
+        elif isinstance(self.value, str):
+            index = ctrl.FindString(self.value)
+            if index != wx.NOT_FOUND:
+                ctrl.SetSelection(index)
+        else:
+            # Default to no selection if value doesn't match
+            ctrl.SetSelection(wx.NOT_FOUND)
+
+        return True
+
+    def TransferFromWindow(self):
+        ctrl = self.GetWindow()
+
+        if self.Validate(ctrl.GetParent()):
+            self._model.setvalue(ctrl.GetName(), self.value)
+            return True
+        else:
+            return False
+
+
 if __name__ == '__main__':
 
     class CheckValidatorsDialog(wx.Dialog):
@@ -620,7 +742,7 @@ if __name__ == '__main__':
             hbs.Add(cb_status2, 0, wx.ALL, 5)
             hbs.Add(cb_status3, 0, wx.ALL, 5)
 
-            fgs = wx.FlexGridSizer(6, 3, 5, 5)
+            fgs = wx.FlexGridSizer(9, 3, 5, 5)
             # floating point validation test
             fgs.Add(st_fv, 0, wx.ALIGN_RIGHT)
             fgs.Add(tc_float_data, 0, wx.EXPAND)
@@ -650,6 +772,41 @@ if __name__ == '__main__':
             fgs.Add(st_status, 0, wx.ALIGN_RIGHT)
             fgs.Add(hbs, 0, wx.EXPAND)
             fgs.Add(wx.StaticText(self, label="Either True or False"),
+                    0, wx.EXPAND)
+
+            # Add selection validators test
+            st_choice = wx.StaticText(self, label="Category:")
+            choices = ["Home", "Work", "Personal", "Other"]
+            ch_category = wx.Choice(
+                self, choices=choices,
+                validator=SelectionValidator(self._model),
+                name='category_index')
+            fgs.Add(st_choice, 0, wx.ALIGN_RIGHT)
+            fgs.Add(ch_category, 0, wx.EXPAND)
+            fgs.Add(wx.StaticText(self, label="Index-based selection"),
+                    0, wx.EXPAND)
+
+            st_combo = wx.StaticText(self, label="Priority:")
+            priorities = ["Low", "Medium", "High", "Critical"]
+            cb_priority = wx.ComboBox(
+                self, choices=priorities,
+                style=wx.CB_READONLY,
+                validator=SelectionValidator(
+                    self._model, selection_type=str),
+                name='priority')
+            fgs.Add(st_combo, 0, wx.ALIGN_RIGHT)
+            fgs.Add(cb_priority, 0, wx.EXPAND)
+            fgs.Add(wx.StaticText(self, label="String-based selection"),
+                    0, wx.EXPAND)
+
+            st_optional = wx.StaticText(self, label="Optional:")
+            ch_optional = wx.Choice(
+                self, choices=["Option A", "Option B", "Option C"],
+                validator=SelectionValidator(self._model, required=False),
+                name='optional_choice')
+            fgs.Add(st_optional, 0, wx.ALIGN_RIGHT)
+            fgs.Add(ch_optional, 0, wx.EXPAND)
+            fgs.Add(wx.StaticText(self, label="Selection not required"),
                     0, wx.EXPAND)
 
             # Use standard button IDs for validators to work correctly
@@ -704,7 +861,9 @@ if __name__ == '__main__':
         mydict = {"float_value": math.nan, "int_value": None,
                   "text_value": '', "constrained_value": None,
                   "decimal_value": Decimal('1'),
-                  "status1": None, "status2": None, "status3": None}
+                  "status1": None, "status2": None, "status3": None,
+                  "category_index": 0, "priority": "Medium",
+                  "optional_choice": None}
         # create the App's model
         mymodel = AppModel(mydict)
 
