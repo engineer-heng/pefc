@@ -1,6 +1,6 @@
 # Python Engineering Foundation Class Library (pefc)
 # qctools Library
-# Copyright(C) 2021 Heng Swee Ngee
+# Copyright(C) 2021-2025 Heng Swee Ngee
 #
 # Released under the MIT License - https://opensource.org/licenses/MIT
 #

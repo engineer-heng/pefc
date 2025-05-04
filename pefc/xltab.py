@@ -1,6 +1,6 @@
 # Python Engineering Foundation Class Library (pefc)
 # xltab Library
-# Copyright(C) 2017-2023 Heng Swee Ngee
+# Copyright(C) 2017-2025 Heng Swee Ngee
 #
 # Released under the MIT License - https://opensource.org/licenses/MIT
 #

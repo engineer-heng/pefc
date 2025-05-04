@@ -1,6 +1,6 @@
 # Python Engineering Foundation Class Library (pefc)
 # genericmodels Library, originated date: 2020-01-07
-# Copyright(C) 2020 Heng Swee Ngee
+# Copyright(C) 2020-2025 Heng Swee Ngee
 #
 # Released under the MIT License - https://opensource.org/licenses/MIT
 #

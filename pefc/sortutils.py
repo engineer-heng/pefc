@@ -1,6 +1,6 @@
 # Python Engineering Foundation Class Library (pefc)
 # sortutils library
-# Copyright(C) 2017 Heng Swee Ngee
+# Copyright(C) 2017-2025 Heng Swee Ngee
 #
 # The Alphanum Algorithm is an improved sorting algorithm for strings
 # containing numbers.  Instead of sorting numbers in ASCII order like
