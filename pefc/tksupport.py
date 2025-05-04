@@ -28,8 +28,8 @@ def centered_window_offset(parent, win_width, win_height):
 
         win_height: int, height of window to center
 
-        Usage
-        -----
+        Example
+        -------
         >>> win_width = 500
         >>> win_height = 550
         >>> x, y = centered_screen_offset(root, win_width, win_height)
@@ -46,8 +46,8 @@ class BusyInfo(tk.Toplevel):
     """ BusyInfo class is implemented to help inform the user that
         the program is busy. It is a top level window without title bar.
 
-        Usage:
-        ------
+        Example
+        -------
         >>> import tkinter as tk
         >>> import time
         >>> from pefc.tksupport import BusyInfo
@@ -135,7 +135,7 @@ def busy_info_test():
 class FuncLauncher(tk.Frame):
     """ Function launcher to debug programs. Avoid using this for python
         exercises because many on-line interpreters don't support tkinter
-        module. This Function Launcher is a app not a dialog.
+        module. This Function Launcher is an app not a dialog.
     """
 
     def __init__(self, parent, button_dict=None, title="Function Launcher",
@@ -435,8 +435,8 @@ def ask_singlechoicedialog_item(
 
         width: int, List box weight. Default is 50 text characters long.
 
-        Usage
-        -----
+        Example
+        -------
         >>> items = ['Red', 'Blue', 'Yellow', 'Green']
         >>> item = ask_singlechoicedialog_item(root, choice_list=items)
         >>> print(f"Item chosen is {item} and type is {type(item)}")

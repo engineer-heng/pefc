@@ -49,8 +49,8 @@ def mround(x, base=5):
 
         return: numpy.darray rounded to the required base value
 
-        Usage:
-        -----
+        Example
+        -------
         >>> mround(3332)
         >>> 3330
         >>> mround(3335)

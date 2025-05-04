@@ -21,7 +21,9 @@ class LongTextInfoBox(wx.Dialog):
             caption: str, dialog box title.
 
             content: str, content to be displayed.
-            Example for a pandas DataFrame:
+
+            Example for a pandas DataFrame
+            -------------------------------
             >>> # Create or get data for the pandas DataFrame df.
             >>> with io.StringIO() as buff:
             >>>     df.to_string(buff)

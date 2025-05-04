@@ -1,4 +1,12 @@
-""" Common useful utilities including  machine learning utilities
+""" Common useful utilities including machine learning utilities
+    for data preprocessing, feature engineering, and model evaluation.
+    This module includes functions for calculating percentage change,
+    percentage difference, and percentage error. It also includes
+    functions for converting between snake case and camel case.
+    The functions are designed to be used in a variety of contexts,
+    including data analysis, machine learning, and general programming.
+    The functions are implemented in Python and are intended to be
+    easy to use and understand.
 """
 
 # NOTE: The percent_* formulas are based on the following references.
@@ -22,8 +30,8 @@ def percent_change(value1: float, value2: float, frac: bool = False) -> float:
 
         return: float, percentage change value
 
-        Usage
-        -----
+        Example
+        -------
         >>> percent_change(-10, -6)
         -40.0
         >>> percent_change(100, 110)
@@ -55,8 +63,8 @@ def percent_diff(value1: float, value2: float, frac: bool = False) -> float:
 
             return: float, absolute value of the difference in percentages
 
-            Usage
-            -----
+            Example
+            -------
             >>> percent_diff(5, 7)
             33.33333333333333
             >>> percent_diff(5, 7, frac=True)
@@ -117,8 +125,8 @@ def percent_changefrom_target(target_val: float, actual_val: float,
 
             return: float, percentage difference or fraction
 
-            Usage
-            -----
+            Example
+            -------
             >>> percent_changefrom_target(5, 7)
             -40.0
             >>> percent_changefrom_target(5, 7, frac=True)
@@ -129,13 +137,62 @@ def percent_changefrom_target(target_val: float, actual_val: float,
         perchg *= 100
     return perchg
 
-# 4GL Translation e.g. team_member becomes TeamMember and vice versa
-# Utilities for generating reports from data fields or labels
-
 
 def snake2camel_case(label: str, addspace=False) -> str:
-    pass
+    """ Convert a snake case string to camel case. e.g. team_member becomes
+        TeamMember and vice versa. If addspace is True, then the first letter
+        of each word is capitalized and a space is added between words.
+
+        label: str, input string
+
+        addspace: bool, Default is False. Set to True adds a space between
+            words.
+
+        return: str, camel case string
+
+        Example
+        -------
+        >>> snake2camel_case('team_member')
+        'TeamMember'
+        >>> snake2camel_case('team_member', addspace=True)
+        'Team Member'
+    """
+    if addspace:
+        return label.replace('_', ' ').title()
+    else:
+        return ''.join(word.title() for word in label.split('_'))
 
 
 def camel2snake_case(label: str) -> str:
-    pass
+    """ Convert a camel case string to snake case. e.g. TeamMember becomes
+        team_member.
+
+        label: str, input string
+
+        return: str, snake case string
+
+        Example
+        -------
+        >>> camel2snake_case('TeamMember')
+        'team_member'
+    """
+    return ''.join(['_' + i.lower() if i.isupper() else i
+                    for i in label]).lstrip('_')
+
+
+def _test():
+    import doctest
+    print(doctest.testmod())
+
+
+if __name__ == '__main__':
+    _test()
+    print(percent_change(100, 110))
+    print(percent_change(100, 110, frac=True))
+    print(percent_diff(5, 7))
+    print(percent_diff(5, 7, frac=True))
+    print(percent_error(100, 110))
+    print(percent_error(100, 110, frac=True))
+    print(snake2camel_case('team_member'))
+    print(snake2camel_case('team_member', addspace=True))
+    print(camel2snake_case('TeamMember'))

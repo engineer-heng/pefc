@@ -36,7 +36,8 @@ class AlphaNum:
     used by nontechnical people. Besides, it's the 21st Century;
     software engineers can do better than this.
 
-    Usage:
+    Example
+    -------
            string_list.sort(key=AlphaNum) or
            sorted_str_lst = sorted(string_list, key=AlphaNum) """
 

@@ -141,10 +141,12 @@ class PyXLDatalink(ABC):
         opt_empty : str or default math.nan
             Return this specified value if cell is blank, empty or error.
             e.g 'NA', '' or nan
+
         Returns
         -------
         A single value, list of values or dict of values depending
         on cell_refs parameter
+
         Examples
         --------
         >>> xldl = XLDataLink(r'./samples/xltest.xlsx')
@@ -409,6 +411,7 @@ class OXLDataLink(PyXLDatalink):
         opt_date : datetime.datetime or default datetime.date
         opt_empty : str or default math.nan
             Sets empty or blank cell return value e.g 'NA', '' or nan
+
         Returns
         -------
             list of cell values
@@ -428,6 +431,7 @@ class OXLDataLink(PyXLDatalink):
         opt_date : datetime.datetime or default datetime.date
         opt_empty : str or default math.nan
             Sets empty or blank cell return value e.g 'NA', '' or nan
+
         Returns
         -------
             list of cell values
@@ -535,6 +539,7 @@ class XLDataLink(PyXLDatalink):
         date : datetime.datetime or default datetime.date
         empty : str or default math.nan
             Sets empty or blank cell return value e.g 'NA', '' or nan
+
         Returns
         -------
         Single cell value or list of cell values:
@@ -561,7 +566,10 @@ class XLDataLink(PyXLDatalink):
 
         cell_ref: str
             Single cell reference e.g 'H82' or cell range e.g. 'B5:E36'
-        return: single raw cell value or list of raw cell values
+
+        Returns
+        -------
+        Single raw cell value or list of raw cell values
         """
         # handles a single cell ref or a cell range only
         if cell_ref is None:
@@ -587,7 +595,7 @@ class XLDataLink(PyXLDatalink):
         dates : datetime.datetime or default datetime.date
         empty : str or default math.nan
             Sets empty or blank cell return value e.g 'NA', '' or nan
-        return : cell value
+
         """
         if cell is None:
             return None
@@ -627,7 +635,7 @@ class XLDataLink(PyXLDatalink):
         dates : datetime.datetime or default datetime.date
         empty : str or default math.nan
             Sets empty or blank cell return value e.g 'NA', '' or nan
-        return: cell value
+
         """
         return self._get_cell_value(self._wsheet.cell(row_no, col_no),
                                     dates, empty)
@@ -706,10 +714,13 @@ class XLDataLink(PyXLDatalink):
     @classmethod
     def cref_row_no(cls, crs):
         """
-        Returns the row number of a cell reference e.g. A10 returns 9
+        Get the row number of a cell reference e.g. A10 returns 9
 
         crs: str, cell reference
-        return: int, row number
+
+        Returns
+        -------
+        int, row number
         """
         numindex = cls.cref_num_index(crs)
         return int(crs[numindex:]) - 1  # pure python integer will not overflow
@@ -719,11 +730,14 @@ class XLDataLink(PyXLDatalink):
     @classmethod
     def cref_column_no(cls, crs):
         """
-        Returns the column number portion of a cell reference. 0-based.
+        Get the column number portion of a cell reference. 0-based.
         e.g. B25 returns 1
 
         crs: str, cell reference
-        return: int, column number
+
+        Returns
+        -------
+        int, column number
         """
         colnum = 0
         numindex = cls.cref_num_index(crs)
@@ -745,11 +759,14 @@ class XLDataLink(PyXLDatalink):
     @classmethod
     def cref_coord(cls, crs):
         """
-        Returns the row and column number of a cell reference
+        Get the row and column number of a cell reference
         e.g. IV525 returns (524, 255)
 
         crs: str, cell reference
-        return: tuple, (row_no, col_no)
+
+        Returns
+        -------
+        tuple, (row_no, col_no)
         """
         return cls.cref_row_no(crs), cls.cref_column_no(crs)
 
@@ -762,7 +779,11 @@ class XLDataLink(PyXLDatalink):
         eg column #3 -> D
 
         col_no: int
-        return: bytearray of chars
+
+        returns
+        -------
+        bytearray, ALPHA-26 representation in
+        bytearray form. e.g. 'A' -> 65, 'B' -> 66, 'C' -> 67
         """
         # Excel counts column A as the 1st column, we treat it as the 0th one
         excel_col_num = col_no + 1
@@ -785,14 +806,19 @@ class XLDataLink(PyXLDatalink):
     @classmethod
     def get_cell_ref(cls, row_no, col_no, rowabs=False, colabs=False):
         """
-        Returns the cell reference from the given row and column number
+        Get the cell reference from the given row and column number
 
         row_no: int, Row number starts from 0
         col_no: int, Column number starts from 0
         rowabs: bool, Absolute row address if set to True. default is False
         colabs: bool, Absolute column address is set to True. default is False
-        return: str, cell reference
+
+        Returns
+        -------
+        cell reference: str
+            e.g. 'A1', 'B2', 'C3', '$A1', 'B$2', '$C$3'
         """
+
         buf = bytearray()
         if colabs:
             buf.append(ord(cls._fixed_ind))
@@ -807,7 +833,7 @@ class XLDataLink(PyXLDatalink):
     def row_values(self, xl_row_no: int, opt_date=datetime.date,
                    opt_empty=math.nan):
         """
-        Returns the cell values in the specified row number.
+        Get the cell values in the specified row number.
 
         Parameters
         ----------
@@ -816,6 +842,7 @@ class XLDataLink(PyXLDatalink):
         opt_date : datetime.datetime or default datetime.date
         opt_empty : str or default math.nan
             Sets empty or blank cell return value e.g 'NA', '' or nan
+
         Returns
         -------
             list of cell values
@@ -837,6 +864,7 @@ class XLDataLink(PyXLDatalink):
         opt_date : datetime.datetime or default datetime.date
         opt_empty : str or default math.nan
             Sets empty or blank cell return value e.g 'NA', '' or nan
+
         Returns
         -------
             list of cell values
@@ -873,6 +901,7 @@ class XLWDataLink(PyXLDatalink):
         xlfname: str, MS Excel file name
         xlsheet: str e.g. 'Sheet1' or int e.g. 0 for
         first sheet. Default is 0.
+
         Example
         -------
         >>> import xlwings as xw
