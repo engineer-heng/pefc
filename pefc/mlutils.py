@@ -17,33 +17,80 @@
 def percent_change(value1: float, value2: float, frac: bool = False) -> float:
     """ Return the percentage change between two values. The denominator
         or base value is value1.
-        Equation used is (value2 - value1)/value1. This is to check the
-        material usage variance to a standard value, the value1 parameter.
+        This is for checking the material usage variance to a standard value,
+        the value1 parameter.
 
-        value1: float, base value
+        value1: float, base value or standard value.
 
-        value2: float, changed value
+        value2: float, changed value.
 
         frac: bool, Default is False. Set to True returns a fraction
             instead of percentages. This is useful for performing
             calculations on spreadsheets.
 
-        return: float, percentage change value
+        Equation
+        --------
+        percent_change = (value2 - value1)/value1
+
+        This is the same as the HP calculator's Δ% as per wikipedia
+        value1 ENTER value2 Δ% e.g. -10 ENTER -6 Δ% = -40.
+        Don't use relative percentage change i.e (value2 - value1)/abs(value1).
+
+        Returns
+        -------
+        float, percentage change value in % or fraction.
 
         Example
         -------
         >>> percent_change(-10, -6)
         -40.0
+        >>> percent_change(5, 7)
+        40.0
         >>> percent_change(100, 110)
         10.0
         >>> percent_change(100, 110, frac=True)
         0.1
 
     """
-    # don't use relative percentage change i.e (value2 - value1)/abs(value1)
-    # use the same function as HP calculator's Δ% as per wikipedia
-    # value1 ENTER value2 Δ% e.g. -10 ENTER -6 Δ% = -40
     perchg = (value2 - value1)/value1
+    if frac is False:
+        perchg *= 100
+    return perchg
+
+
+def percent_changefrom_target(target_val: float, actual_val: float,
+                              frac: bool = False) -> float:
+    """ Return the percentage change between target and actual value.
+        The denominator is the target value. The difference between
+        percent_change and percent_changefrom_target is that the latter is
+        used to adjust a recipe to a targeted percentage value. This is useful
+        for formulation of a product to meet it active ingredients' percentage.
+
+        target_val: float, target value
+
+        actual_val: float, current actual value
+
+        frac: bool, Default is False. Set to True returns a fraction
+            instead of percentages. This is useful for performing
+            calculations on spreadsheets.
+
+        Equation
+        --------
+        perchg_from_target = (target_val - actual_val)/target_val
+        or (value1 - value2)/value1 using percent_change notation.
+
+        Returns
+        -------
+        float, percentage change from target value in % or fraction.
+
+        Example
+        -------
+        >>> percent_changefrom_target(5, 7)
+        -40.0
+        >>> percent_changefrom_target(5, 7, frac=True)
+        -0.4
+        """
+    perchg = (target_val - actual_val)/target_val
     if frac is False:
         perchg *= 100
     return perchg
@@ -51,24 +98,30 @@ def percent_change(value1: float, value2: float, frac: bool = False) -> float:
 
 def percent_diff(value1: float, value2: float, frac: bool = False) -> float:
     """ Return the percentage difference between two values. The denominator
-            is the average of value1 and value2.
+        is the average of value1 and value2.
 
-            value1: float, first value
+        value1: float, first value must be >= 0
 
-            value2: float, second value
+        value2: float, second value must be >= 0
 
-            frac: bool, Default is False. Set to True returns a fraction
-                instead of percentages. This is useful for performing
-                calculations on spreadsheets.
+        frac: bool, Default is False. Set to True returns a fraction
+            instead of percentages. This is useful for performing
+            calculations on spreadsheets.
 
-            return: float, absolute value of the difference in percentages
+        Equation
+        --------
+        percent_diff = abs(value1 - value2)/((value1 + value2)/2.0)
 
-            Example
-            -------
-            >>> percent_diff(5, 7)
-            33.33333333333333
-            >>> percent_diff(5, 7, frac=True)
-            0.3333333333333333
+        Returns
+        -------
+        float, absolute value of the difference in percentages
+
+        Example
+        -------
+        >>> percent_diff(5, 7)
+        33.33333333333333
+        >>> percent_diff(5, 7, frac=True)
+        0.3333333333333333
         """
     assert value1 >= 0 and value2 >= 0, 'Values must not be negative'
     perdiff = abs(value1 - value2)/((value1 + value2)/2.0)
@@ -89,10 +142,19 @@ def percent_error(value1: float, value2: float, frac: bool = False) -> float:
             instead of percentages. This is useful for performing
             calculations on spreadsheets.
 
-        return: float, percentage change value
+        Equation
+        --------
+        percent_error = abs(value2 - value1)/abs(value1)
 
-        Usage
-        -----
+        percent_error = |experimental - theoretical| / |theoretical|
+        as per wikipedia article.
+
+        Returns
+        -------
+        float, percentage error value
+
+        Example
+        -------
         >>> percent_error(-10, -6)
         40.0
         >>> percent_error(100, 110)
@@ -101,41 +163,10 @@ def percent_error(value1: float, value2: float, frac: bool = False) -> float:
         0.1
 
     """
-    # percent_error as per wikipedia article
-    # percent_error = |experimental - theoretical| / |theoretical|
     pererr = abs(value2 - value1)/abs(value1)
     if frac is False:
         pererr *= 100
     return pererr
-
-
-def percent_changefrom_target(target_val: float, actual_val: float,
-                              frac: bool = False) -> float:
-    """ Return the percentage change between target and actual values.
-        The denominator is the target value.
-        Equation used is (target_val - actual_val)/target_val
-
-            target_val: float, target value
-
-            actual_val: float, current actual value
-
-            frac: bool, Default is False. Set to True returns a fraction
-                instead of percentages. This is useful for performing
-                calculations on spreadsheets.
-
-            return: float, percentage difference or fraction
-
-            Example
-            -------
-            >>> percent_changefrom_target(5, 7)
-            -40.0
-            >>> percent_changefrom_target(5, 7, frac=True)
-            -0.4
-        """
-    perchg = (target_val - actual_val)/target_val
-    if frac is False:
-        perchg *= 100
-    return perchg
 
 
 def snake2camel_case(label: str, addspace=False) -> str:
@@ -182,17 +213,25 @@ def camel2snake_case(label: str) -> str:
 
 def _test():
     import doctest
+    print("Doctest results:")
+    print("===============")
+    print("Test results:")
     print(doctest.testmod())
 
 
 if __name__ == '__main__':
     _test()
+    print("\nmlutils Test results:")
+    print("===================")
     print(percent_change(100, 110))
     print(percent_change(100, 110, frac=True))
+    print(percent_change(5, 7))
     print(percent_diff(5, 7))
     print(percent_diff(5, 7, frac=True))
     print(percent_error(100, 110))
     print(percent_error(100, 110, frac=True))
+    print(percent_changefrom_target(5, 7))
+    print(percent_changefrom_target(5, 7, frac=True))
     print(snake2camel_case('team_member'))
     print(snake2camel_case('team_member', addspace=True))
     print(camel2snake_case('TeamMember'))
