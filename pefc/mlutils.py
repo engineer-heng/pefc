@@ -179,7 +179,9 @@ def snake2camel_case(label: str, addspace=False) -> str:
         addspace: bool, Default is False. Set to True adds a space between
             words.
 
-        return: str, camel case string
+        Returns
+        -------
+        str, camel case string
 
         Example
         -------
@@ -200,7 +202,9 @@ def camel2snake_case(label: str) -> str:
 
         label: str, input string
 
-        return: str, snake case string
+        Returns
+        -------
+        str, snake case string
 
         Example
         -------
