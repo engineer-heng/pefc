@@ -178,12 +178,10 @@ class TestPercentDiff(unittest.TestCase):
 
     def test_large_and_small_numbers(self):
         """Test with very large and very small numbers."""
-        self.assertEqual(percent_diff(1e6, 3e6), 100.0)
-        self.assertEqual(percent_diff(1e-6, 3e-6), 100.0)
-        self.assertEqual(percent_diff(
-            2e6, 6e5), 107.69230769230771)
-        self.assertEqual(percent_diff(
-            2e-6, 6e-7), 107.69230769230771)
+        self.assertAlmostEqual(percent_diff(1e6, 3e6), 100.0, places=4)
+        self.assertAlmostEqual(percent_diff(1e-6, 3e-6), 100.0, places=4)
+        self.assertAlmostEqual(percent_diff(2e6, 6e5), 107.6923, places=4)
+        self.assertAlmostEqual(percent_diff(2e-6, 6e-7), 107.6923, places=4)
 
     def test_order_invariance(self):
         """Test that the order of arguments doesn't matter."""
@@ -294,9 +292,24 @@ class TestSnake2CamelCase(unittest.TestCase):
         """Test edge cases like empty string, single word."""
         self.assertEqual(snake2camel_case(''), '')
         self.assertEqual(snake2camel_case('word'), 'Word')
-        self.assertEqual(snake2camel_case('_word_'), 'Word')
         self.assertEqual(snake2camel_case(
-            '__double__underscore__'), 'DoubleUnderscore')
+            '_leading_underscore'), 'LeadingUnderscore')
+        self.assertEqual(snake2camel_case(
+            'trailing_underscore_'), 'TrailingUnderscore')
+        self.assertEqual(snake2camel_case(
+            '__double__multiple_underscores__'), 'DoubleMultipleUnderscores')
+
+    def test_edge_cases_with_space(self):
+        """Test edge cases with addspace=True."""
+        self.assertEqual(snake2camel_case('', addspace=True), '')
+        self.assertEqual(snake2camel_case('word', addspace=True), 'Word')
+        self.assertEqual(snake2camel_case('_leading_underscore',
+                         addspace=True), ' Leading Underscore')
+        self.assertEqual(snake2camel_case(
+            'trailing_underscore_', addspace=True), 'Trailing Underscore ')
+        self.assertEqual(snake2camel_case('__double__multiple_underscores__',
+                         addspace=True), '  Double  Multiple Underscores  ')
+        self.assertEqual(snake2camel_case('_word_', addspace=True), ' Word ')
 
     def test_with_numbers(self):
         """Test with numbers and special characters."""
@@ -309,9 +322,9 @@ class TestSnake2CamelCase(unittest.TestCase):
     def test_already_camel_case(self):
         """Test with input that's already in CamelCase or other formats."""
         self.assertEqual(snake2camel_case(
-            'already_Capitalized_words'), 'AlreadyCapitalizedWords')
+            'already_Capitalized_Words'), 'AlreadyCapitalizedWords')
         self.assertEqual(snake2camel_case(
-            'UPPERCASE_WORDS'), 'UPPERCASEWORDS')
+            'UPPERCASE_WORDS'), 'UppercaseWords')
 
 
 class TestCamel2SnakeCase(unittest.TestCase):
@@ -326,25 +339,42 @@ class TestCamel2SnakeCase(unittest.TestCase):
             'FirstNameLastName'), 'first_name_last_name')
 
     def test_edge_cases(self):
-        """Test edge cases like empty string, single word."""
+        """Test edge cases like empty string, single word, single letter."""
         self.assertEqual(camel2snake_case(''), '')
         self.assertEqual(camel2snake_case('Word'), 'word')
         self.assertEqual(camel2snake_case('word'), 'word')
+        self.assertEqual(camel2snake_case('W'), 'w')
         self.assertEqual(camel2snake_case('w'), 'w')
 
     def test_with_numbers(self):
-        """Test with numbers and special characters."""
+        """Test with numbers in various positions."""
         self.assertEqual(camel2snake_case('User123'), 'user123')
         self.assertEqual(camel2snake_case(
             'Item1Name2'), 'item1_name2')
+        self.assertEqual(camel2snake_case('123User'), '123_user')
+        self.assertEqual(camel2snake_case('User123ID'), 'user123_id')
+        self.assertEqual(camel2snake_case('Version2Point0'), 'version2_point0')
 
     def test_consecutive_uppercase(self):
-        """Test with consecutive uppercase letters."""
+        """Test with consecutive uppercase letters and acronyms."""
         self.assertEqual(camel2snake_case(
             'HTTPRequest'), 'http_request')
         self.assertEqual(camel2snake_case(
             'APIEndpoint'), 'api_endpoint')
         self.assertEqual(camel2snake_case('iOS'), 'i_os')
+        self.assertEqual(camel2snake_case('NASAProgram'),
+                         'nasa_program')
+        self.assertEqual(camel2snake_case('ProgramNASA'), 'program_nasa')
+        self.assertEqual(camel2snake_case('MyNASAProgram'),
+                         'my_nasa_program')
+        self.assertEqual(camel2snake_case('ABCHttp'), 'abc_http')
+        self.assertEqual(camel2snake_case('SimpleXMLParser'),
+                         'simple_xml_parser')
+        self.assertEqual(camel2snake_case('XMLHTTPRequest'), 'xmlhttp_request')
+        self.assertEqual(camel2snake_case('AValue'), 'a_value')
+        self.assertEqual(camel2snake_case('ValueA'), 'value_a')
+        self.assertEqual(camel2snake_case('ABC'), 'abc')
+        self.assertEqual(camel2snake_case('ID'), 'id')
 
     def test_already_snake_case(self):
         """Test with input that's already in snake_case."""

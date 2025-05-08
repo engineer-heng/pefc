@@ -210,9 +210,19 @@ def camel2snake_case(label: str) -> str:
         -------
         >>> camel2snake_case('TeamMember')
         'team_member'
+        >>> camel2snake_case('TeamMemberID')
+        'team_member_id'
+        >>> camel2snake_case('ABC')
+        'abc'
     """
-    return ''.join(['_' + i.lower() if i.isupper() else i
-                    for i in label]).lstrip('_')
+    import re
+    # This pattern looks for lowercase followed by uppercase or
+    # any character followed by uppercase letter followed by lowercase
+    pattern = re.compile(r'([a-z0-9])([A-Z])|([A-Z])([A-Z][a-z])')
+
+    # Insert underscore and convert the entire string to lowercase
+    result = pattern.sub(r'\1\3_\2\4', label)
+    return result.lower()
 
 
 def _test():
@@ -225,17 +235,60 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-    print("\nmlutils Test results:")
-    print("===================")
-    print(percent_change(100, 110))
-    print(percent_change(100, 110, frac=True))
-    print(percent_change(5, 7))
-    print(percent_diff(5, 7))
-    print(percent_diff(5, 7, frac=True))
-    print(percent_error(100, 110))
-    print(percent_error(100, 110, frac=True))
-    print(percent_changefrom_target(5, 7))
-    print(percent_changefrom_target(5, 7, frac=True))
-    print(snake2camel_case('team_member'))
-    print(snake2camel_case('team_member', addspace=True))
-    print(camel2snake_case('TeamMember'))
+    print("\nmlutils Test assertions:")
+    print("======================")
+    assert percent_change(100, 110) == 10.0, "percent_change(100, 110) failed"
+    assert percent_change(
+        100, 110, frac=True) == 0.1, \
+        "percent_change(100, 110, frac=True) failed"
+    assert percent_change(5, 7) == 40.0, "percent_change(5, 7) failed"
+
+    # Using almost equal for floating point comparisons
+    def assert_almost_equal(a, b, places=7):
+        epsilon = 10**(-places)
+        assert abs(a - b) < epsilon, f"{a} != {b} within {places} places"
+
+    assert_almost_equal(percent_diff(5, 7), 33.33333333333333, places=4)
+    assert_almost_equal(percent_diff(5, 7, frac=True),
+                        0.3333333333333333, places=4)
+
+    assert percent_error(100, 110) == 10.0, "percent_error(100, 110) failed"
+    assert percent_error(
+        100, 110, frac=True) == 0.1, \
+        "percent_error(100, 110, frac=True) failed"
+    assert percent_changefrom_target(
+        5, 7) == -40.0, "percent_changefrom_target(5, 7) failed"
+    assert percent_changefrom_target(
+        5, 7, frac=True) == -0.4, \
+        "percent_changefrom_target(5, 7, frac=True) failed"
+
+    assert snake2camel_case(
+        'team_member') == 'TeamMember', \
+        "snake2camel_case('team_member') failed"
+    assert snake2camel_case(
+        'team_member', addspace=True) == 'Team Member', \
+        "snake2camel_case('team_member', addspace=True) failed"
+    assert camel2snake_case(
+        'TeamMember') == 'team_member', \
+        "camel2snake_case('TeamMember') failed"
+    assert camel2snake_case(
+        'TeamMemberID') == 'team_member_id', \
+        "camel2snake_case('TeamMemberID') failed"
+    assert camel2snake_case(
+        'HTTPRequest') == 'http_request', \
+        "camel2snake_case('HTTPRequest') failed"
+    assert camel2snake_case(
+        'APIEndpoint') == 'api_endpoint', \
+        "camel2snake_case('APIEndpoint') failed"
+    assert camel2snake_case(
+        'NASAProgram') == 'nasa_program', \
+        "camel2snake_case('NASAProgram') failed"
+    assert camel2snake_case(
+        'MyNASAProgram') == 'my_nasa_program', \
+        "camel2snake_case('MyNASAProgram') failed"
+    assert camel2snake_case(
+        'SimpleXMLParser') == 'simple_xml_parser', \
+        "camel2snake_case('SimpleXMLParser') failed"
+    assert camel2snake_case('ABC') == 'abc', "camel2snake_case('ABC') failed"
+
+    print("All assertions passed!")
