@@ -8,6 +8,8 @@
     The functions are implemented in Python and are intended to be
     easy to use and understand.
 """
+import numpy as np
+
 
 # NOTE: The percent_* formulas are based on the following references.
 # https://www.calculatorsoup.com/calculators/algebra/percent-difference-calculator.php
@@ -225,6 +227,47 @@ def camel2snake_case(label: str) -> str:
     return result.lower()
 
 
+def mround(x, base=5):
+    """ Similar to Excel mround function
+
+        x: numpy.darray of values to be rounded
+
+        base: int or float specifying multiples of the base value.
+        Default is 5.
+
+        return: numpy.darray rounded to the required base value
+
+        Example
+        -------
+        >>> mround(3332)
+        3330
+        >>> mround(3335)
+        3335
+        >>> mround(3338)
+        3340
+        >>> mround(2.332, .005)
+        2.33
+        >>> mround(2.335, .005)
+        2.335
+        >>> mround(2.338, .005)
+        2.34
+        >>> arr = np.array([1006, 987, 1024, 1023, 978])
+        >>> mround(arr)
+        array([1005.,  985., 1025., 1025.,  980.])
+    """
+    ret = None
+    if isinstance(x, np.ndarray):
+        ret = base * np.around(x/base)
+    elif isinstance(x, list) or isinstance(x, tuple):
+        raise ValueError("x should be a 1D numpy array")
+    else:
+        try:
+            ret = base * round(x/base)
+        except Exception as ex:
+            print(ex)
+    return ret
+
+
 def _test():
     import doctest
     print("Doctest results:")
@@ -290,5 +333,27 @@ if __name__ == '__main__':
         'SimpleXMLParser') == 'simple_xml_parser', \
         "camel2snake_case('SimpleXMLParser') failed"
     assert camel2snake_case('ABC') == 'abc', "camel2snake_case('ABC') failed"
+
+    # Test mround function
+    assert mround(3332) == 3330, "mround(3332) failed"
+    assert mround(3335) == 3335, "mround(3335) failed"
+    assert mround(3338) == 3340, "mround(3338) failed"
+    assert mround(0) == 0, "mround(0) failed"
+
+    # Test with float values and custom base
+    assert abs(mround(2.332, 0.005) -
+               2.33) < 1e-10, "mround(2.332, 0.005) failed"
+    assert abs(mround(2.335, 0.005) -
+               2.335) < 1e-10, "mround(2.335, 0.005) failed"
+    assert abs(mround(2.338, 0.005) -
+               2.34) < 1e-10, "mround(2.338, 0.005) failed"
+
+    # Test with numpy array
+    arr = np.array([1006, 987, 1024, 1023, 978])
+    np.testing.assert_array_equal(
+        mround(arr),
+        np.array([1005., 985., 1025., 1025., 980.]),
+        "mround(numpy array) failed"
+    )
 
     print("All assertions passed!")

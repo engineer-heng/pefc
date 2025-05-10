@@ -1,7 +1,8 @@
 import unittest
 from pefc.mlutils import (percent_change, percent_changefrom_target,
                           percent_diff, percent_error, snake2camel_case,
-                          camel2snake_case)
+                          camel2snake_case, mround)
+import numpy as np
 
 
 class TestPercentChange(unittest.TestCase):
@@ -391,6 +392,120 @@ class TestCamel2SnakeCase(unittest.TestCase):
             'PascalCaseExample'), 'pascal_case_example')
         self.assertEqual(camel2snake_case(
             'camelCaseExample'), 'camel_case_example')
+
+
+class TestMround(unittest.TestCase):
+
+    """Test cases for the mround function."""
+
+    def test_basic_integer_values(self):
+        """Test basic integer values with default base of 5."""
+        self.assertEqual(mround(3332), 3330)
+        self.assertEqual(mround(3335), 3335)
+        self.assertEqual(mround(3338), 3340)
+        self.assertEqual(mround(0), 0)
+        self.assertEqual(mround(5), 5)
+        self.assertEqual(mround(7), 5)
+        self.assertEqual(mround(10), 10)
+
+    def test_negative_integer_values(self):
+        """Test negative integer values with default base of 5."""
+        self.assertEqual(mround(-3332), -3330)
+        self.assertEqual(mround(-3335), -3335)
+        self.assertEqual(mround(-3338), -3340)
+        self.assertEqual(mround(-5), -5)
+        self.assertEqual(mround(-7), -5)
+
+    def test_float_values(self):
+        """Test float values with various bases."""
+        self.assertAlmostEqual(mround(2.332, 0.005), 2.33)
+        self.assertAlmostEqual(mround(2.335, 0.005), 2.335)
+        self.assertAlmostEqual(mround(2.338, 0.005), 2.34)
+        self.assertAlmostEqual(mround(1.5, 0.1), 1.5)
+        self.assertAlmostEqual(mround(1.52, 0.1), 1.5)
+        self.assertAlmostEqual(mround(1.55, 0.1), 1.6)
+        self.assertAlmostEqual(mround(1.58, 0.1), 1.6)
+
+    def test_negative_float_values(self):
+        """Test negative float values with various bases."""
+        self.assertAlmostEqual(mround(-2.332, 0.005), -2.33)
+        self.assertAlmostEqual(mround(-2.335, 0.005), -2.335)
+        self.assertAlmostEqual(mround(-2.338, 0.005), -2.34)
+        self.assertAlmostEqual(mround(-1.5, 0.1), -1.5)
+        self.assertAlmostEqual(mround(-1.52, 0.1), -1.5)
+        self.assertAlmostEqual(mround(-1.55, 0.1), -1.6)
+        self.assertAlmostEqual(mround(-1.58, 0.1), -1.6)
+
+    def test_custom_integer_base(self):
+        """Test with custom integer base values."""
+        self.assertEqual(mround(42, 10), 40)
+        self.assertEqual(mround(45, 10), 50)
+        self.assertEqual(mround(137, 25), 125)
+        self.assertEqual(mround(138, 25), 150)
+        self.assertEqual(mround(99, 33), 99)  # closest is 99
+        self.assertEqual(mround(100, 33), 99)  # closest is 99
+
+    def test_numpy_array(self):
+        """Test with numpy array input."""
+        arr = np.array([1006, 987, 1024, 1023, 978])
+        np.testing.assert_array_equal(
+            mround(arr), np.array([1005., 985., 1025., 1025., 980.]))
+
+        arr = np.array([1.42, 1.45, 1.47])
+        np.testing.assert_array_equal(
+            mround(arr, 0.1), np.array([1.4, 1.5, 1.5]))
+
+    def test_numpy_array_with_different_base(self):
+        """Test numpy array with different base values."""
+        arr = np.array([42, 45, 137, 138, 99])
+        np.testing.assert_array_equal(
+            mround(arr, 10), np.array([40., 50., 140., 140., 100.]))
+
+        arr = np.array([2.332, 2.335, 2.338])
+        np.testing.assert_array_almost_equal(
+            mround(arr, 0.005), np.array([2.330, 2.335, 2.340]))
+
+    def test_invalid_inputs(self):
+        """Test handling of invalid inputs."""
+        with self.assertRaises(ValueError):
+            mround([1, 2, 3])
+
+        with self.assertRaises(ValueError):
+            mround((1, 2, 3))
+
+        # Base of zero should raise an error
+        with self.assertRaises(Exception):
+            mround(100, 0)
+
+    def test_edge_cases(self):
+        """Test edge cases like very large or small numbers."""
+        self.assertEqual(mround(1e9, 1e6), 1e9)
+        self.assertAlmostEqual(mround(1e-6, 1e-9), 1e-6)
+
+        # Very small base with large number
+        self.assertEqual(mround(1000, 0.001), 1000.0)
+
+        # Very large base with small number
+        self.assertEqual(mround(0.001, 1000), 0)
+
+    def test_formula_verification(self):
+        """Verify the formula implementation is correct."""
+        # Formula: ret = base * round(x/base)
+        x = 137
+        base = 25
+        expected = base * round(x / base)
+        self.assertEqual(mround(x, base), expected)
+
+        x = 2.338
+        base = 0.005
+        expected = base * round(x / base)
+        self.assertAlmostEqual(mround(x, base), expected)
+
+        # For numpy array
+        arr = np.array([1006, 987, 1024])
+        base = 5
+        expected = base * np.around(arr / base)
+        np.testing.assert_array_equal(mround(arr, base), expected)
 
 
 if __name__ == '__main__':

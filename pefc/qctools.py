@@ -39,47 +39,6 @@ import seaborn as sns
 from matplotlib.ticker import FuncFormatter
 
 
-def mround(x, base=5):
-    """ Similar to Excel mround function
-
-        x: numpy.darray of values to be rounded
-
-        base: int or float specifying multiples of the base value.
-        Default is 5.
-
-        return: numpy.darray rounded to the required base value
-
-        Example
-        -------
-        >>> mround(3332)
-        >>> 3330
-        >>> mround(3335)
-        >>> 3335
-        >>> (mround(3338)
-        >>> 3340
-        >>> (mround(2.332, .005)
-        >>> 2.33
-        >>> (mround(2.335, .005)
-        >>> 2.335
-        >>> (mround(2.338, .005)
-        >>> 2.34
-        >>> arr = np.array([1006, 987, 1024, 1023, 978])
-        >>> mround(arr)
-        >>> array([1005.,  985., 1025., 1025.,  980.])
-    """
-    ret = None
-    if isinstance(x, np.ndarray):
-        ret = base * np.around(x/base)
-    elif isinstance(x, list) or isinstance(x, tuple):
-        raise ValueError("x should be a 1D numpy array")
-    else:
-        try:
-            ret = base * round(x/base)
-        except Exception as ex:
-            print(ex)
-    return ret
-
-
 def normality_test_report(ary, aryname='X'):
     """ Normality test on an array.
         Both Anderson-Darling and Shapiro-Wilk are tested.
