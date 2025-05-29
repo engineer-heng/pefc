@@ -1,8 +1,10 @@
 import unittest
-from pefc.mlutils import (percent_change, percent_changefrom_target,
-                          percent_diff, percent_error, snake2camel_case,
-                          camel2snake_case, mround)
-import numpy as np
+import datetime
+
+from pefc.mlutils import (camel2snake_case, mround, percent_change,
+                          percent_changefrom_target, percent_diff,
+                          percent_error, snake2camel_case,
+                          format_excel_time_number, )
 
 
 class TestPercentChange(unittest.TestCase):
@@ -395,117 +397,197 @@ class TestCamel2SnakeCase(unittest.TestCase):
 
 
 class TestMround(unittest.TestCase):
-
     """Test cases for the mround function."""
 
     def test_basic_integer_values(self):
         """Test basic integer values with default base of 5."""
-        self.assertEqual(mround(3332), 3330)
-        self.assertEqual(mround(3335), 3335)
-        self.assertEqual(mround(3338), 3340)
-        self.assertEqual(mround(0), 0)
-        self.assertEqual(mround(5), 5)
-        self.assertEqual(mround(7), 5)
-        self.assertEqual(mround(10), 10)
+        self.assertEqual(mround(3332, 5), 3330)
+        self.assertEqual(mround(3335, 5), 3335)
+        self.assertEqual(mround(3338, 5), 3340)
+        self.assertEqual(mround(0, 5), 0)
+        self.assertEqual(mround(5, 5), 5)
+        self.assertEqual(mround(7, 5), 5)
+        self.assertEqual(mround(10, 5), 10)
 
     def test_negative_integer_values(self):
         """Test negative integer values with default base of 5."""
-        self.assertEqual(mround(-3332), -3330)
-        self.assertEqual(mround(-3335), -3335)
-        self.assertEqual(mround(-3338), -3340)
-        self.assertEqual(mround(-5), -5)
-        self.assertEqual(mround(-7), -5)
+        self.assertEqual(mround(-3332, -5), -3330)
+        self.assertEqual(mround(-3335, -5), -3335)
+        self.assertEqual(mround(-3338, -5), -3340)
+        self.assertEqual(mround(-5, -5), -5)
+        self.assertEqual(mround(-7, -5), -5)
 
     def test_float_values(self):
-        """Test float values with various bases."""
-        self.assertAlmostEqual(mround(2.332, 0.005), 2.33)
-        self.assertAlmostEqual(mround(2.335, 0.005), 2.335)
-        self.assertAlmostEqual(mround(2.338, 0.005), 2.34)
-        self.assertAlmostEqual(mround(1.5, 0.1), 1.5)
-        self.assertAlmostEqual(mround(1.52, 0.1), 1.5)
-        self.assertAlmostEqual(mround(1.55, 0.1), 1.6)
-        self.assertAlmostEqual(mround(1.58, 0.1), 1.6)
+        """Test with float values and custom bases."""
+        self.assertAlmostEqual(
+            mround(2.332, 0.005), 2.33, places=10)
+        self.assertAlmostEqual(
+            mround(2.335, 0.005), 2.335, places=10)
+        self.assertAlmostEqual(
+            mround(2.338, 0.005), 2.34, places=10)
+        self.assertAlmostEqual(mround(1.25, 0.1), 1.3, places=10)
+        self.assertAlmostEqual(mround(1.24, 0.1), 1.2, places=10)
 
-    def test_negative_float_values(self):
-        """Test negative float values with various bases."""
-        self.assertAlmostEqual(mround(-2.332, 0.005), -2.33)
-        self.assertAlmostEqual(mround(-2.335, 0.005), -2.335)
-        self.assertAlmostEqual(mround(-2.338, 0.005), -2.34)
-        self.assertAlmostEqual(mround(-1.5, 0.1), -1.5)
-        self.assertAlmostEqual(mround(-1.52, 0.1), -1.5)
-        self.assertAlmostEqual(mround(-1.55, 0.1), -1.6)
-        self.assertAlmostEqual(mround(-1.58, 0.1), -1.6)
+    def test_zero_values(self):
+        """Test with zero values."""
+        self.assertEqual(mround(0, 5), 0)
+        self.assertEqual(mround(0, 0.1), 0)
+        self.assertEqual(mround(100, 0), 0)
+        self.assertEqual(mround(0, 0), 0)
 
-    def test_custom_integer_base(self):
-        """Test with custom integer base values."""
-        self.assertEqual(mround(42, 10), 40)
-        self.assertEqual(mround(45, 10), 50)
-        self.assertEqual(mround(137, 25), 125)
-        self.assertEqual(mround(138, 25), 150)
-        self.assertEqual(mround(99, 33), 99)  # closest is 99
-        self.assertEqual(mround(100, 33), 99)  # closest is 99
-
-    def test_numpy_array(self):
-        """Test with numpy array input."""
-        arr = np.array([1006, 987, 1024, 1023, 978])
-        np.testing.assert_array_equal(
-            mround(arr), np.array([1005., 985., 1025., 1025., 980.]))
-
-        arr = np.array([1.42, 1.45, 1.47])
-        np.testing.assert_array_equal(
-            mround(arr, 0.1), np.array([1.4, 1.5, 1.5]))
-
-    def test_numpy_array_with_different_base(self):
-        """Test numpy array with different base values."""
-        arr = np.array([42, 45, 137, 138, 99])
-        np.testing.assert_array_equal(
-            mround(arr, 10), np.array([40., 50., 140., 140., 100.]))
-
-        arr = np.array([2.332, 2.335, 2.338])
-        np.testing.assert_array_almost_equal(
-            mround(arr, 0.005), np.array([2.330, 2.335, 2.340]))
-
-    def test_invalid_inputs(self):
-        """Test handling of invalid inputs."""
+    def test_different_signs_error(self):
+        """Test error handling when number and multiple have
+           different signs."""
         with self.assertRaises(ValueError):
-            mround([1, 2, 3])
+            mround(10, -5)
 
         with self.assertRaises(ValueError):
-            mround((1, 2, 3))
+            mround(-10, 5)
 
-        # Base of zero should raise an error
-        with self.assertRaises(Exception):
-            mround(100, 0)
+        with self.assertRaises(ValueError):
+            mround(-3.5, 2.5)
 
-    def test_edge_cases(self):
-        """Test edge cases like very large or small numbers."""
-        self.assertEqual(mround(1e9, 1e6), 1e9)
-        self.assertAlmostEqual(mround(1e-6, 1e-9), 1e-6)
+        with self.assertRaises(ValueError):
+            mround(3.5, -2.5)
 
-        # Very small base with large number
-        self.assertEqual(mround(1000, 0.001), 1000.0)
+    def test_time_string_inputs(self):
+        """Test with time string inputs."""
+        # 12:00 (noon) should be 0.5 of a day
+        # Round to nearest 15 minutes
+        result = mround("12:00", "0:15")
+        # 15 minutes = 0.25/24 of a day
+        expected = mround(0.5, 0.25/24)
+        self.assertAlmostEqual(result, expected, places=10)
 
-        # Very large base with small number
-        self.assertEqual(mround(0.001, 1000), 0)
+        # 10:35 rounded to nearest 15 minutes
+        result = mround("10:35", "0:15")
+        # 10:35 = 10.583333... hours = 0.44097... of a day
+        # Nearest 15 minutes would be 10:30
+        expected = mround(10.583333/24, 0.25/24)
+        self.assertAlmostEqual(result, expected, places=5)
 
-    def test_formula_verification(self):
-        """Verify the formula implementation is correct."""
-        # Formula: ret = base * round(x/base)
-        x = 137
-        base = 25
-        expected = base * round(x / base)
-        self.assertEqual(mround(x, base), expected)
+    def test_time_string_validation(self):
+        """Test validation of time string formats."""
+        # Valid formats
+        self.assertIsInstance(mround("12:00", "0:15"), float)
+        self.assertIsInstance(mround("10:30:45", "0:00:30"), float)
 
-        x = 2.338
-        base = 0.005
-        expected = base * round(x / base)
-        self.assertAlmostEqual(mround(x, base), expected)
+        # Time values >= 24 hours are actually valid
+        # (representing hours beyond a day)
+        self.assertIsInstance(mround("25:00", "1:00"), float)
 
-        # For numpy array
-        arr = np.array([1006, 987, 1024])
-        base = 5
-        expected = base * np.around(arr / base)
-        np.testing.assert_array_equal(mround(arr, base), expected)
+        # Invalid formats that should raise ValueError
+        with self.assertRaises(ValueError):
+            mround("12:60", "1:00")  # Invalid minutes
+
+        with self.assertRaises(ValueError):
+            mround("12:30:60", "1:00")  # Invalid seconds
+
+    def test_datetime_time_objects(self):
+        """Test with datetime.time objects."""
+        noon = datetime.time(12, 0, 0)
+        quarter_hour = datetime.time(0, 15, 0)
+
+        result = mround(noon, quarter_hour)
+        expected = mround(0.5, 0.25/24)
+        self.assertAlmostEqual(result, expected, places=10)
+
+    def test_datetime_timedelta_objects(self):
+        """Test with datetime.timedelta objects."""
+        twelve_hours = datetime.timedelta(hours=12)
+        fifteen_minutes = datetime.timedelta(minutes=15)
+
+        result = mround(twelve_hours, fifteen_minutes)
+        expected = mround(0.5, 0.25/24)
+        self.assertAlmostEqual(result, expected, places=10)
+
+    def test_numeric_string_inputs(self):
+        """Test with numeric string inputs."""
+        self.assertAlmostEqual(
+            mround("2.332", "0.005"), 2.33, places=10)
+        self.assertAlmostEqual(
+            mround("1.25", "0.1"), 1.3, places=10)
+        self.assertEqual(mround("100", "5"), 100)
+        self.assertEqual(mround("103", "5"), 105)
+
+    def test_mixed_input_types(self):
+        """Test with mixed input types."""
+
+        # Mix of numeric and time string
+        result = mround(0.5, "0:15")
+        expected = mround(0.5, 0.25/24)
+        self.assertAlmostEqual(result, expected, places=10)
+
+        # Mix of time object and numeric
+        noon = datetime.time(12, 0, 0)
+        result = mround(noon, 0.25/24)
+        expected = 0.5
+        self.assertAlmostEqual(result, expected, places=10)
+
+    def test_large_time_values(self):
+        """Test with time values exceeding 24 hours."""
+        # 26:00 should work (26 hours)
+        result = mround("26:00", "1:00")
+        expected = mround(26/24, 1/24)
+        self.assertAlmostEqual(result, expected, places=10)
+
+    def test_precision_edge_cases(self):
+        """Test precision edge cases."""
+        # Test rounding behavior at exact halfway points
+        self.assertAlmostEqual(
+            mround(2.5, 1), 3, places=10)  # Round half up
+        self.assertAlmostEqual(
+            mround(1.5, 1), 2, places=10)  # Round half up
+        # Round half away from zero
+        self.assertAlmostEqual(mround(-2.5, -1), -3, places=10)
+        # Round half away from zero
+        self.assertAlmostEqual(mround(-1.5, -1), -2, places=10)
+
+    def test_very_small_multiples(self):
+        """Test with very small multiple values."""
+        self.assertAlmostEqual(
+            mround(1.23456789, 0.0001), 1.2346, places=10)
+        self.assertAlmostEqual(
+            mround(1.23454321, 0.0001), 1.2345, places=10)
+
+    def test_invalid_input_types(self):
+        """Test with invalid input types."""
+        # Test with invalid string that can't be parsed as number or time
+        with self.assertRaises(ValueError):
+            mround("not_a_number", 5)
+
+        with self.assertRaises(ValueError):
+            mround("invalid_string", 5)
+
+        with self.assertRaises(ValueError):
+            mround(5, "invalid_string")
+
+    def test_excel_compatibility_examples(self):
+        """Test examples that match Excel MROUND behavior."""
+        # Standard Excel MROUND examples
+        self.assertEqual(mround(10, 3), 9)
+        self.assertEqual(mround(11, 3), 12)
+        self.assertEqual(mround(12, 3), 12)
+        self.assertEqual(mround(13, 3), 12)
+        self.assertEqual(mround(14, 3), 15)
+
+        # Negative examples
+        self.assertEqual(mround(-10, -3), -9)
+        self.assertEqual(mround(-11, -3), -12)
+
+        # Decimal examples
+        self.assertAlmostEqual(mround(1.234, 0.1), 1.2, places=10)
+        self.assertAlmostEqual(mround(1.25, 0.1), 1.3, places=10)
+
+    def test_format_excel_time_number_helper(self):
+        """Test the helper function for formatting time numbers."""
+        # Test the helper function if it's being used
+        self.assertEqual(format_excel_time_number(0.5), "12:00:00")
+        self.assertEqual(
+            format_excel_time_number(0.25), "06:00:00")
+        self.assertEqual(format_excel_time_number(1.0), "24:00:00")
+        self.assertEqual(
+            format_excel_time_number(-0.5), "-12:00:00")
 
 
 if __name__ == '__main__':
