@@ -95,8 +95,10 @@ setup(
         'Development Status :: 3 - Alpha',
 
         # Indicate who your project is intended for
-        'Intended Audience :: Developers, Scientists, Engineers, Data Analyst',
-        'Topic :: Software Development :: Build Tools',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Scientific/Engineering',
 
         # Pick your license as you wish
         'License :: OSI Approved :: MIT License',
@@ -107,14 +109,20 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
-        'Operating System :: Windows, Mac OS'
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
+
+        # Specify the operating systems you support
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: MacOS',
+        'Operating System :: POSIX :: Linux',
     ],
 
     # This field adds keywords for your project which will appear on the
     # project page. What does your project relate to?
     #
     # Note that this is a string of words separated by whitespace, not a list.
-    keywords='pefc engineering spreadsheets',  # Optional
+    keywords='engineering data-analysis utilities spreadsheets',  # Optional
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -126,7 +134,7 @@ setup(
     #   py_modules=["my_module"],
     #
     # packages=find_packages(exclude=['contrib', 'docs', 'tests']),  # Required
-    packages=find_packages(exclude=['.vscode', 'doc']),  # Required
+    packages=find_packages(exclude=['.vscode', 'doc', 'tests']),  # Required
 
     # This field lists other packages that your project depends on to run.
     # Any package you put here will be installed by pip when your project is
@@ -134,7 +142,7 @@ setup(
     #
     # For an analysis of "install_requires" vs pip's requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['openpyxl', 'xlrd', 'xlwings'],  # Optional
+    install_requires=['numpy', 'openpyxl', 'xlrd', 'xlwings'],  # Optional
     python_requires='>=3.6',  # Optional
 
     # List additional groups of dependencies here (e.g. development
