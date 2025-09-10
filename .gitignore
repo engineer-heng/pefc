@@ -1,4 +1,6 @@
 # general things to ignore
+.DS_Store
+tests/.DS_Store
 build/
 dist/
 *.egg-info/
@@ -13,5 +15,3 @@ __pycache__/
 *.sublime-workspace
 .tox
 .cache
-.DS_Store
-tests/.DS_Store
